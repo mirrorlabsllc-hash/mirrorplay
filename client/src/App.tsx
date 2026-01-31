@@ -18,6 +18,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { OnboardingProvider } from "@/components/OnboardingTour";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import type { UserProgress } from "@shared/schema";
+import { supabase } from "@/lib/supabase";
 
 import Landing from "@/pages/Landing";
 import Login from "@/pages/Login";
@@ -98,6 +99,17 @@ function AuthenticatedApp() {
 
   const { showModal, leveledUpTo, handleClose } = useLevelUpDetection(progress?.level ?? undefined);
   const { weatherEffect, intensity } = useMoodWeather();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      window.location.href = "/";
+    }
+  };
 
   return (
     <OnboardingProvider>
@@ -107,11 +119,16 @@ function AuthenticatedApp() {
         <FloatingParticles count={15} className="z-0" />
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
           <SoundToggle />
-          <a href="/api/logout" data-testid="button-exit">
-            <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-foreground">
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </a>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={handleLogout}
+            disabled={isSigningOut}
+            data-testid="button-exit"
+          >
+            <LogOut className="w-5 h-5" />
+          </Button>
         </div>
         <main className="relative z-10">
           <AnimatedRoutes />
