@@ -484,7 +484,9 @@ export default function PracticeHub() {
 
   const streakMultiplier = getStreakMultiplier(progress?.currentStreak || 0);
 
-  if (phase === "loading" || phase === "greeting" || phase === "reward") {
+  // TEMP DEBUG: Disable loading screen to see if app renders underneath
+  // if (phase === "loading" || phase === "greeting" || phase === "reward") {
+  if (phase === "greeting" || phase === "reward") {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <AnimatePresence mode="wait">
