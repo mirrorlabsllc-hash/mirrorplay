@@ -3,6 +3,23 @@ import Stripe from 'stripe';
 let connectionSettings: any;
 
 async function getCredentials() {
+  console.log("STRIPE_SECRET_KEY =", process.env.STRIPE_SECRET_KEY);
+  console.log(
+    "STRIPE KEY LENGTH:",
+    process.env.STRIPE_SECRET_KEY?.length,
+    "PREFIX:",
+    process.env.STRIPE_SECRET_KEY?.slice(0, 7)
+  );
+
+  const envSecret = process.env.STRIPE_SECRET_KEY;
+  const envPublishable = process.env.STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY_TEST;
+  if (envSecret) {
+    return {
+      publishableKey: envPublishable || "",
+      secretKey: envSecret,
+    };
+  }
+
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY
     ? 'repl ' + process.env.REPL_IDENTITY
@@ -11,7 +28,7 @@ async function getCredentials() {
       : null;
 
   if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+    throw new Error('Stripe credentials not configured. Set STRIPE_SECRET_KEY for local dev or configure Replit Stripe connector.');
   }
 
   const connectorName = 'stripe';
@@ -48,7 +65,7 @@ export async function getUncachableStripeClient() {
   const { secretKey } = await getCredentials();
 
   return new Stripe(secretKey, {
-    apiVersion: '2025-05-28.basil',
+    apiVersion: '2025-12-15.clover',
   });
 }
 

@@ -29,6 +29,18 @@ export default function Login() {
     const error = urlParams.get("error");
     const reason = urlParams.get("reason");
     
+    if (error === "google_unavailable") {
+      const errorMessage = "Google sign-in is not configured yet. Please use email.";
+      setGoogleError(errorMessage);
+      toast({
+        title: "Sign-in unavailable",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      window.history.replaceState({}, "", "/login");
+      return;
+    }
+
     if (error === "google_failed") {
       let errorMessage = "Google sign-in failed. Please try again or use email.";
       if (reason === "no_user") {

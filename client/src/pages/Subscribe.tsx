@@ -17,9 +17,10 @@ import {
 } from "lucide-react";
 import { Link, useSearch } from "wouter";
 import { cn } from "@/lib/utils";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import type { Subscription } from "@shared/schema";
 
 interface StripePrice {
   id: string;
@@ -70,6 +71,12 @@ const planStyles: Record<string, { color: string; popular?: boolean; gradient?: 
 };
 
 export default function Subscribe() {
+  console.log("FRONTEND STRIPE ENV", {
+    peace: import.meta.env.VITE_STRIPE_PRICE_ID_PEACE_PLUS,
+    pro: import.meta.env.VITE_STRIPE_PRICE_ID_PRO_MIND,
+    pub: import.meta.env.VITE_STRIPE_PUBLIC_KEY,
+  });
+
   const { toast } = useToast();
   const searchString = useSearch();
   const searchParams = new URLSearchParams(searchString);
@@ -92,6 +99,10 @@ export default function Subscribe() {
 
   const { data: stripeSubscription, isLoading: loadingSubscription } = useQuery<StripeSubscriptionResponse>({
     queryKey: ["/api/stripe/subscription"],
+  });
+
+  const { data: appSubscription } = useQuery<Subscription>({
+    queryKey: ["/api/subscription"],
   });
 
   const { data: productsData } = useQuery<{ products: StripeProduct[] }>({
@@ -136,8 +147,31 @@ export default function Subscribe() {
     },
   });
 
-  const currentTier = stripeSubscription?.tier || "free";
+  const stripeTier = stripeSubscription?.subscription ? stripeSubscription.tier : null;
+  const currentTier = stripeTier || appSubscription?.tier || "free";
   const hasActiveSubscription = stripeSubscription?.subscription && stripeSubscription.status === "active";
+
+  const manualSelectMutation = useMutation({
+    mutationFn: async (tier: string) => {
+      const response = await apiRequest("POST", "/api/subscription/select", { tier });
+      return await response.json();
+    },
+    onSuccess: (_data, tier) => {
+      toast({
+        title: "Plan updated",
+        description: `You're now on the ${tier.replace("_", " ")} plan.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/subscription/usage"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Unable to update plan",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Fallback products when Stripe isn't connected
   const fallbackProducts = [
@@ -148,7 +182,7 @@ export default function Subscribe() {
       price: "$4.99",
       period: "per month",
       description: "Practice as much as you need with unlimited daily sessions, deeper insights, and full story mode access.",
-      priceId: null,
+      priceId: import.meta.env.VITE_STRIPE_PRICE_ID_PEACE_PLUS,
     },
     {
       id: "pro_mind_fallback",
@@ -157,7 +191,7 @@ export default function Subscribe() {
       price: "$9.99",
       period: "per month",
       description: "Everything in Mirror Play+ plus voice cloning, all cosmetics, 5x Peace Points, and priority support.",
-      priceId: null,
+      priceId: import.meta.env.VITE_STRIPE_PRICE_ID_PRO_MIND,
     },
   ];
 
@@ -300,6 +334,12 @@ export default function Subscribe() {
                       </Button>
                     )}
 
+                    {isCurrent && plan.tier !== "free" && !hasActiveSubscription && (
+                      <Button variant="outline" className="w-full" disabled data-testid="button-current-plan">
+                        Current Plan
+                      </Button>
+                    )}
+
                     {!isCurrent && plan.priceId && (
                       <Button 
                         className={cn(
@@ -324,8 +364,17 @@ export default function Subscribe() {
                     )}
 
                     {!isCurrent && !plan.priceId && plan.tier !== "free" && (
-                      <Button variant="outline" className="w-full" disabled>
-                        Coming Soon
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => manualSelectMutation.mutate(plan.tier)}
+                        disabled={manualSelectMutation.isPending}
+                        data-testid={`button-select-${plan.tier}`}
+                      >
+                        {manualSelectMutation.isPending ? (
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : null}
+                        Select {plan.name}
                       </Button>
                     )}
                   </div>

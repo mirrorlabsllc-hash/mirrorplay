@@ -18,6 +18,17 @@ export async function getSubscriptionTier(userId: string): Promise<SubscriptionT
   const user = await storage.getUser(userId);
   
   if (!user?.stripeCustomerId) {
+    const allowManual =
+      process.env.ALLOW_MANUAL_SUBSCRIPTION === "true" ||
+      process.env.NODE_ENV !== "production";
+
+    if (allowManual) {
+      const subscription = await storage.getSubscription(userId);
+      if (subscription?.tier === "peace_plus" || subscription?.tier === "pro_mind") {
+        return subscription.tier;
+      }
+    }
+
     return 'free';
   }
 

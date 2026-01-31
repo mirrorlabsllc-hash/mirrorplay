@@ -40,9 +40,8 @@ import {
   MessageSquare,
   Zap,
   Crown,
-  Wind,
 } from "lucide-react";
-import { getRandomPrompt, type PracticePrompt } from "@shared/promptBank";
+import { getRandomHandoff, type PracticeHandoff } from "@shared/promptBank";
 import { normalizeReward, formatRewardLabel, type RawDatabaseReward } from "@shared/rewards";
 import type { UserProgress, DailyLoginReward } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
@@ -112,11 +111,11 @@ const PRACTICE_CATEGORIES: PracticeCategory[] = [
     questionCount: 5,
   },
   {
-    id: "stress",
-    name: "Stress Relief",
-    description: "Calm communication under pressure",
-    icon: Wind,
-    iconBg: "#06b6d4",
+    id: "empathy",
+    name: "Addressing Conflict",
+    description: "Resolve a disagreement directly with the person involved.",
+    icon: MessageSquare,
+    iconBg: "#f97316",
     isNew: true,
     questionCount: 5,
   },
@@ -198,7 +197,7 @@ export default function PracticeHub() {
   const [phase, setPhase] = useState<PracticePhase>("loading");
   const [claimedReward, setClaimedReward] = useState<RawDatabaseReward | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<WheelCategory | null>(null);
-  const [currentPrompt, setCurrentPrompt] = useState<PracticePrompt | null>(null);
+  const [currentPrompt, setCurrentPrompt] = useState<PracticeHandoff | null>(null);
   const [lastResponse, setLastResponse] = useState("");
   const [toneAnalysis, setToneAnalysis] = useState<ToneAnalysis | null>(null);
   const [pendingCategory, setPendingCategory] = useState<PracticeCategory | null>(null);
@@ -311,7 +310,10 @@ export default function PracticeHub() {
         strengths: result.strengths || [],
         areasToImprove: result.areasToImprove || [],
         alternatives: result.exampleResponses || result.alternatives || [],
-        coachingTip: result.coachingInsight || result.tip || "Great job expressing yourself. Keep practicing to build confidence.",
+        coachingTip:
+          result.coachingInsight ||
+          result.tip ||
+          "You kept your presence steady. Let it land with a clear finish, then add one line to guide the next step.",
         whyItMatters: result.whyItMatters || null,
         bodyLanguageTip: result.bodyLanguageTip || null,
         xpEarned: result.xpEarned || 10,
@@ -351,7 +353,7 @@ export default function PracticeHub() {
 
     setWheelSpinsUsed(s => s + 1);
     setSelectedCategory(category);
-    const prompt = getRandomPrompt(category.id);
+    const prompt = getRandomHandoff(category.id);
     setCurrentPrompt(prompt);
     
     setTimeout(() => {
@@ -396,7 +398,7 @@ export default function PracticeHub() {
     const categoryToUse = wheelCategory || WHEEL_CATEGORIES[0];
     
     setSelectedCategory(categoryToUse);
-    const prompt = getRandomPrompt(categoryToUse.id);
+    const prompt = getRandomHandoff(categoryToUse.id);
     setCurrentPrompt(prompt);
     setShowConfirmModal(false);
     
@@ -417,7 +419,7 @@ export default function PracticeHub() {
     if (selectedCategory && currentPrompt) {
       analyzeMutation.mutate({
         response,
-        prompt: currentPrompt.text,
+        prompt: currentPrompt.line,
         category: selectedCategory.id,
         audioBase64: audioData,
         duration,
@@ -427,7 +429,7 @@ export default function PracticeHub() {
 
   const handleSkipPrompt = () => {
     if (selectedCategory) {
-      const newPrompt = getRandomPrompt(selectedCategory.id);
+      const newPrompt = getRandomHandoff(selectedCategory.id);
       setCurrentPrompt(newPrompt);
     }
   };
@@ -706,7 +708,7 @@ export default function PracticeHub() {
                   <pendingCategory.icon className="w-5 h-5 text-white" />
                 </div>
               )}
-              <DialogTitle>Practice {pendingCategory?.name} today?</DialogTitle>
+              <DialogTitle>Start {pendingCategory?.name} now.</DialogTitle>
             </div>
             <DialogDescription className="pt-2">
               {pendingCategory?.description}
@@ -714,7 +716,7 @@ export default function PracticeHub() {
           </DialogHeader>
           <div className="py-2">
             <p className="text-sm text-muted-foreground">
-              You'll answer {pendingCategory?.questionCount || 5} questions in this category. 
+              You'll run {pendingCategory?.questionCount || 5} scenario reps in this category.
               This choice is locked for today unless you use a reroll.
             </p>
           </div>

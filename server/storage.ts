@@ -166,6 +166,8 @@ import {
   testimonials,
   type Testimonial,
   type InsertTestimonial,
+  prototypeFeedback,
+  type PrototypeFeedback,
   type UserFeedback,
   type InsertUserFeedback,
 } from "@shared/schema";
@@ -481,6 +483,9 @@ export interface IStorage {
   createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
   updateTestimonial(id: string, updates: Partial<InsertTestimonial>): Promise<Testimonial | undefined>;
   deleteTestimonial(id: string): Promise<void>;
+
+  // Prototype feedback (internal)
+  getPrototypeFeedback(limit?: number): Promise<PrototypeFeedback[]>;
 
   // Analytics
   getAnalytics(): Promise<{
@@ -2660,6 +2665,19 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTestimonial(id: string): Promise<void> {
     await db.delete(testimonials).where(eq(testimonials.id, id));
+  }
+
+  async getPrototypeFeedback(limit: number = 200): Promise<PrototypeFeedback[]> {
+    return await db
+      .select()
+      .from(prototypeFeedback)
+      .orderBy(desc(prototypeFeedback.createdAt))
+      .limit(limit);
+  }
+
+  async createPrototypeFeedback(entry: InsertPrototypeFeedback): Promise<PrototypeFeedback> {
+    const [created] = await db.insert(prototypeFeedback).values(entry).returning();
+    return created;
   }
 
   // Analytics

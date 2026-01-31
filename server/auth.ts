@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -18,6 +19,16 @@ declare module "express-session" {
 }
 
 export async function setupAuth(app: Express) {
+  const sessionSecret =
+    process.env.SESSION_SECRET ??
+    (process.env.NODE_ENV === "production"
+      ? undefined
+      : "dev-session-secret");
+
+  if (!sessionSecret) {
+    throw new Error("SESSION_SECRET is required but was not provided");
+  }
+
   app.use(
     session({
       store: new PgSession({
@@ -25,7 +36,7 @@ export async function setupAuth(app: Express) {
         tableName: "sessions",
         createTableIfMissing: false,
       }),
-      secret: process.env.SESSION_SECRET!,
+      secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
       cookie: {
@@ -54,9 +65,16 @@ export async function setupAuth(app: Express) {
   });
 
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-    const protocol = process.env.NODE_ENV === "production" ? "https" : "https";
-    const host = process.env.REPLIT_DOMAINS?.split(",")[0] || "localhost:5000";
-    const callbackURL = `${protocol}://${host}/api/auth/google/callback`;
+    const protocol =
+      process.env.GOOGLE_OAUTH_PROTOCOL ??
+      (process.env.NODE_ENV === "production" ? "https" : "http");
+    const host =
+      process.env.GOOGLE_OAUTH_HOST ??
+      process.env.REPLIT_DOMAINS?.split(",")[0] ??
+      `localhost:${process.env.PORT || "5000"}`;
+    const callbackURL =
+      process.env.GOOGLE_CALLBACK_URL ??
+      `${protocol}://${host}/api/auth/google/callback`;
 
     passport.use(
       new GoogleStrategy(
@@ -139,6 +157,14 @@ export async function setupAuth(app: Express) {
         })(req, res, next);
       }
     );
+  } else {
+    app.get("/api/auth/google", (_req, res) => {
+      res.redirect("/login?error=google_unavailable");
+    });
+
+    app.get("/api/auth/google/callback", (_req, res) => {
+      res.redirect("/login?error=google_unavailable");
+    });
   }
 
   passport.use(
@@ -208,7 +234,13 @@ export async function setupAuth(app: Express) {
       });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(500).json({ message: "Registration failed. Please try again." });
+      const err = error as any;
+      res.status(500).json({
+        message: "Registration failed. Please try again.",
+        error: process.env.NODE_ENV !== "production"
+          ? err?.message || err?.detail || "Unknown error"
+          : undefined,
+      });
     }
   });
 

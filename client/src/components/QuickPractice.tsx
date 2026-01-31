@@ -8,9 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { categories, getRandomQuestion } from "@shared/questionBank";
+import { getRandomHandoffLine, DEFAULT_HANDOFF_LINE } from "@shared/promptBank";
+import { PRACTICE_CATEGORIES, type PracticeCategory } from "@shared/categories";
 import { Zap, Play, Pause, Send, RefreshCw, Sparkles, TrendingUp, MessageCircle } from "lucide-react";
-import type { QuestionCategory } from "@shared/schema";
 
 const toneColors: Record<string, string> = {
   Calm: "bg-blue-500/20 text-blue-400",
@@ -60,14 +60,14 @@ export function QuickPractice() {
   const [timeLeft, setTimeLeft] = useState(QUICK_PRACTICE_DURATION);
   const [response, setResponse] = useState("");
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
-  const [currentCategory, setCurrentCategory] = useState<QuestionCategory | null>(null);
+  const [currentCategory, setCurrentCategory] = useState<PracticeCategory | null>(null);
   const [result, setResult] = useState<QuickAnalysisResult | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const getNewPrompt = useCallback(() => {
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)] as QuestionCategory;
-    const prompt = getRandomQuestion(randomCategory);
+    const randomCategory = PRACTICE_CATEGORIES[Math.floor(Math.random() * PRACTICE_CATEGORIES.length)].id;
+    const prompt = getRandomHandoffLine(randomCategory) || DEFAULT_HANDOFF_LINE;
     setCurrentCategory(randomCategory);
     setCurrentPrompt(prompt);
     setTimeLeft(QUICK_PRACTICE_DURATION);

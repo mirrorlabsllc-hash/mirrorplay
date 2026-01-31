@@ -7,9 +7,7 @@ import {
   HandHeart, 
   ShieldCheck, 
   Sparkles, 
-  MessageCircle, 
-  Target, 
-  Flame 
+  MessageCircle
 } from "lucide-react";
 
 export interface WheelCategory {
@@ -23,12 +21,10 @@ export interface WheelCategory {
 export const WHEEL_CATEGORIES: WheelCategory[] = [
   { id: "workplace", label: "Workplace", color: "#f59e0b", icon: Briefcase, description: "Professional conversations" },
   { id: "relationships", label: "Relationships", color: "#ec4899", icon: Heart, description: "Personal connections" },
-  { id: "empathy", label: "Empathy", color: "#8b5cf6", icon: HandHeart, description: "Understanding others" },
+  { id: "empathy", label: "Addressing Conflict", color: "#f97316", icon: MessageCircle, description: "Resolve a disagreement directly with the person involved." },
   { id: "boundaries", label: "Boundaries", color: "#06b6d4", icon: ShieldCheck, description: "Setting healthy limits" },
   { id: "confidence", label: "Confidence", color: "#10b981", icon: Sparkles, description: "Self-assured expression" },
   { id: "difficult", label: "Difficult Talks", color: "#f43f5e", icon: MessageCircle, description: "Challenging conversations" },
-  { id: "goals", label: "Goals", color: "#3b82f6", icon: Target, description: "Aspirations & motivation" },
-  { id: "stress", label: "Stress Relief", color: "#a855f7", icon: Flame, description: "Calming techniques" },
 ];
 
 interface SpinWheelProps {

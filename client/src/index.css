@@ -21,37 +21,37 @@
   --glow-amber: hsla(35, 100%, 60%, 0.8);
   --glow-violet: hsla(260, 100%, 70%, 0.8);
 
-  --background: 40 10% 97%;
-  --foreground: 0 0% 17%;
-  --border: 40 12% 84%;
-  --card: 40 12% 99%;
-  --card-foreground: 0 0% 17%;
+  --background: 40 10% 99%;
+  --foreground: 0 0% 10%;
+  --border: 40 12% 78%;
+  --card: 40 12% 100%;
+  --card-foreground: 0 0% 10%;
   --card-border: 40 13% 93%;
-  --sidebar: 40 11% 95%;
-  --sidebar-foreground: 0 0% 17%;
-  --sidebar-border: 40 12% 88%;
+  --sidebar: 40 11% 96%;
+  --sidebar-foreground: 0 0% 10%;
+  --sidebar-border: 40 12% 80%;
   --sidebar-primary: 280 45% 55%;
   --sidebar-primary-foreground: 40 12% 99%;
   --sidebar-accent: 40 15% 88%;
   --sidebar-accent-foreground: 0 0% 17%;
   --sidebar-ring: 280 45% 65%;
-  --popover: 40 14% 92%;
-  --popover-foreground: 0 0% 17%;
-  --popover-border: 40 14% 86%;
+  --popover: 40 14% 96%;
+  --popover-foreground: 0 0% 10%;
+  --popover-border: 40 14% 80%;
   --primary: 280 45% 55%;
   --primary-foreground: 40 12% 99%;
-  --secondary: 40 15% 86%;
-  --secondary-foreground: 0 0% 17%;
-  --muted: 40 16% 89%;
-  --muted-foreground: 0 0% 45%;
-  --accent: 280 18% 85%;
-  --accent-foreground: 0 0% 17%;
+  --secondary: 40 15% 90%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 40 16% 92%;
+  --muted-foreground: 0 0% 32%;
+  --accent: 280 18% 88%;
+  --accent-foreground: 0 0% 10%;
   --mirror-glow: 320 100% 75%;
   --mirror-glow-secondary: 280 100% 70%;
   --destructive: 8 48% 58%;
   --destructive-foreground: 40 12% 99%;
-  --input: 40 13% 72%;
-  --ring: 280 45% 65%;
+  --input: 40 13% 68%;
+  --ring: 280 45% 55%;
   --chart-1: 280 45% 62%;
   --chart-2: 320 55% 68%;
   --chart-3: 145 35% 58%;
@@ -86,6 +86,12 @@
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --destructive-border: hsl(var(--destructive));
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+@layer components {
+  :root .bg-card {
+    background-image: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--accent)) 100%);
+  }
 }
 
 /* Mirror background animations */

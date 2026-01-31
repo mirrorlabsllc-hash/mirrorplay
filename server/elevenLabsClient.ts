@@ -113,9 +113,62 @@ export async function getVoiceDetails(voiceId: string): Promise<any | null> {
   }
 }
 
+export type TtsSection = "general" | "scenario" | "analysis-what" | "analysis-how" | "analysis-reframe";
+
+export interface TtsOptions {
+  section?: TtsSection;
+  difficulty?: "beginner" | "intermediate" | "advanced";
+}
+
+function sanitizeForSsml(text: string): string {
+  const withoutEmoji = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "");
+  const withoutExclaim = withoutEmoji.replace(/[!]+/g, ".");
+  const withoutQuestions = withoutExclaim.replace(/[?]+/g, ".");
+  const collapsed = withoutQuestions.replace(/\s+/g, " ").trim();
+  return collapsed;
+}
+
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function buildSsml(text: string, options: TtsOptions = {}): string {
+  const section = options.section || "general";
+  const difficulty = options.difficulty || "intermediate";
+
+  const cleaned = escapeXml(sanitizeForSsml(text));
+  const baseRate = section === "scenario"
+    ? "88%"
+    : difficulty === "advanced"
+      ? "92%"
+      : difficulty === "beginner"
+        ? "88%"
+        : "90%";
+
+  const sentenceBreak = section === "scenario" ? " <break time=\"400ms\"/> " : " <break time=\"350ms\"/> ";
+  const paragraphBreak = section === "scenario" ? "<break time=\"700ms\"/>" : "<break time=\"600ms\"/>";
+
+  const sentences = cleaned
+    .split(/(?<=[.])\s+/)
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  const sentenceBody = sentences.length > 0 ? sentences.join(sentenceBreak) : cleaned;
+  const withParagraphs = sentenceBody.replace(/\n\s*\n/g, paragraphBreak);
+  const trailingPause = section === "scenario" ? " <break time=\"700ms\"/>" : "";
+
+  return `<speak><prosody rate="${baseRate}" pitch="-2%">${withParagraphs}${trailingPause}</prosody></speak>`;
+}
+
 export async function textToSpeech(
   text: string,
-  voiceId: string = DEFAULT_VOICE_ID
+  voiceId: string = DEFAULT_VOICE_ID,
+  options: TtsOptions = {}
 ): Promise<Buffer | null> {
   if (!ELEVENLABS_API_KEY) {
     console.log("ElevenLabs API key not available");
@@ -123,7 +176,9 @@ export async function textToSpeech(
   }
 
   try {
-    console.log("Calling ElevenLabs TTS for voice:", voiceId, "text:", text.substring(0, 50));
+    const shaped = buildSsml(text.slice(0, 800), options);
+
+    console.log("Calling ElevenLabs TTS for voice:", voiceId, "text:", shaped.substring(0, 80));
     const response = await fetch(
       `${ELEVENLABS_API_URL}/text-to-speech/${voiceId}`,
       {
@@ -133,11 +188,13 @@ export async function textToSpeech(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text,
+          text: shaped,
           model_id: "eleven_monolingual_v1",
           voice_settings: {
-            stability: 0.75,
-            similarity_boost: 0.75,
+            stability: 0.72,
+            similarity_boost: 0.7,
+            style: 0.2,
+            use_speaker_boost: false,
           },
         }),
       }

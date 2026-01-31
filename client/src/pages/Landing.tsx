@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import type { Testimonial } from "@shared/schema";
 import { ThemeToggleSimple } from "@/components/ThemeToggle";
-import mirrorLabsLogo from "@assets/unnamed_1769507171068.jpg";
 import { 
   Sparkles,
   Brain,
@@ -35,12 +35,23 @@ import {
 
 export default function Landing() {
   const { toast } = useToast();
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [customDonation, setCustomDonation] = useState("");
+  const [reviewName, setReviewName] = useState("");
+  const [reviewContent, setReviewContent] = useState("");
 
   const { data: testimonials } = useQuery<Testimonial[]>({
     queryKey: ["/api/testimonials"],
   });
+
+  const hasTestimonials = (testimonials?.length ?? 0) > 0;
+
+  useEffect(() => {
+    if (user?.firstName && !reviewName) {
+      setReviewName(user.firstName);
+    }
+  }, [user, reviewName]);
 
   const betaSignupMutation = useMutation({
     mutationFn: async (email: string) => {
@@ -93,13 +104,74 @@ export default function Landing() {
     }
   };
 
+  const testimonialMutation = useMutation({
+    mutationFn: async (payload: { name: string; content: string }) => {
+      const res = await apiRequest("POST", "/api/testimonials", payload);
+      return res.json();
+    },
+    onSuccess: () => {
+      setReviewContent("");
+      toast({
+        title: "Review submitted",
+        description: "Thanks! Your review will appear after admin approval.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Unable to submit review",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) {
+      toast({
+        title: "Please sign in",
+        description: "Log in to leave a review.",
+      });
+      return;
+    }
+
+    const name = reviewName.trim();
+    const content = reviewContent.trim();
+
+    if (name.length < 2) {
+      toast({
+        title: "Name required",
+        description: "Please enter your first name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (content.length < 20) {
+      toast({
+        title: "Review too short",
+        description: "Please write at least 20 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    testimonialMutation.mutate({ name, content });
+  };
+
   return (
     <div className="min-h-screen">
       {/* Navigation Header */}
       <header className="fixed top-0 left-0 right-0 z-50 px-6 py-4 backdrop-blur-md bg-background/80 border-b border-border/50">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={mirrorLabsLogo} alt="Mirror Labs" className="w-8 h-8 rounded-md object-cover" />
+            <div
+              aria-label="Mirror Labs"
+              className="w-8 h-8 rounded-md bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[10px] font-semibold text-primary-foreground"
+            >
+              ML
+            </div>
             <span className="font-semibold text-lg">Mirror Labs</span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
@@ -338,6 +410,112 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section id="reviews" className="px-6 py-24 bg-gradient-to-b from-transparent via-muted/10 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <Badge variant="secondary" className="mb-4">Testimonials</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Loved by learners</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Real experiences from people practicing with Mirror Play.
+            </p>
+          </motion.div>
+
+          <div className="flex justify-center">
+            <div className="w-full max-w-md">
+              <h3 className="text-xl font-semibold mb-2 text-center">
+                {hasTestimonials ? "Leave a review" : "Be the first to leave a review."}
+              </h3>
+
+              {isAuthenticated ? (
+                <form onSubmit={handleSubmitReview} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">First name</label>
+                    <Input
+                      value={reviewName}
+                      onChange={(e) => setReviewName(e.target.value)}
+                      placeholder="Your first name"
+                      data-testid="input-review-name"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Your review</label>
+                    <textarea
+                      value={reviewContent}
+                      onChange={(e) => setReviewContent(e.target.value)}
+                      placeholder="Tell us what Mirror Play helped you with..."
+                      className="min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      data-testid="input-review-content"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={testimonialMutation.isPending}
+                    data-testid="button-submit-review"
+                  >
+                    {testimonialMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit review"
+                    )}
+                  </Button>
+                </form>
+              ) : (
+                <div className="space-y-4">
+                  <Link href="/login" data-testid="link-review-login">
+                    <Button className="w-full" data-testid="button-review-login">
+                      Sign in to leave a review
+                    </Button>
+                  </Link>
+                  {isAuthLoading && (
+                    <p className="text-xs text-muted-foreground">Checking your session...</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {testimonials && testimonials.length > 0 && (
+            <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {testimonials.slice(0, 6).map((testimonial) => (
+                <GlassCard key={testimonial.id} variant="dark">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Quote className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">“{testimonial.content}”</p>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{testimonial.name}</span>
+                        {testimonial.role && (
+                          <span className="text-xs text-muted-foreground">• {testimonial.role}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 mt-2 text-amber-400">
+                        {Array.from({ length: testimonial.rating || 5 }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-current" />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Ready to Start CTA */}
       <section className="px-6 py-24 text-center">
         <motion.div
@@ -442,7 +620,12 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <img src={mirrorLabsLogo} alt="Mirror Labs" className="w-8 h-8 rounded-md object-cover" />
+              <div
+                aria-label="Mirror Labs"
+                className="w-8 h-8 rounded-md bg-gradient-to-br from-primary/80 to-primary flex items-center justify-center text-[10px] font-semibold text-primary-foreground"
+              >
+                ML
+              </div>
               <span className="font-semibold">Mirror Labs</span>
             </div>
             

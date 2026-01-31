@@ -672,13 +672,10 @@ export type InsertScenarioRating = z.infer<typeof insertScenarioRatingSchema>;
 // Question categories
 export const QUESTION_CATEGORIES = [
   "workplace",
-  "relationships", 
-  "boundaries",
-  "empathy",
-  "negotiation",
-  "accountability",
-  "feedback",
-  "needs",
+  "relationships",
+  "family",
+  "social",
+  "self-advocacy",
 ] as const;
 
 export type QuestionCategory = typeof QUESTION_CATEGORIES[number];
@@ -1444,3 +1441,22 @@ export type InsertUserFeedback = z.infer<typeof insertUserFeedbackSchema>;
 
 export const FEEDBACK_CATEGORIES = ["bug", "feature", "improvement", "other"] as const;
 export type FeedbackCategory = typeof FEEDBACK_CATEGORIES[number];
+
+// Prototype feedback for internal improvement signal (not testimonials)
+export const prototypeFeedback = pgTable("prototype_feedback", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow(),
+  platform: varchar("platform"),
+  feedbackText: text("feedback_text").notNull(),
+  tags: text("tags").array(),
+  category: varchar("category"),
+  difficulty: varchar("difficulty"),
+  type: varchar("type"),
+  consentPublic: boolean("consent_public").default(false),
+  scenarioId: varchar("scenario_id"),
+  appVersion: varchar("app_version"),
+  anonymousUserId: varchar("anonymous_user_id"),
+});
+
+export type PrototypeFeedback = typeof prototypeFeedback.$inferSelect;
+export type InsertPrototypeFeedback = typeof prototypeFeedback.$inferInsert;

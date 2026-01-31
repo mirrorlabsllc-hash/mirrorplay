@@ -7,11 +7,11 @@ import { Mic, Square, Keyboard, RefreshCw, ArrowRight, Loader2, Volume2 } from "
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import type { WheelCategory } from "@/components/SpinWheel";
-import type { PracticePrompt } from "@shared/promptBank";
+import type { PracticeHandoff } from "@shared/promptBank";
 
 interface VoicePracticeSessionProps {
   category: WheelCategory;
-  prompt: PracticePrompt;
+  prompt: PracticeHandoff;
   onComplete: (response: string, audioData?: string, duration?: number) => void;
   onSkip: () => void;
   isProcessing?: boolean;
@@ -49,7 +49,7 @@ export function VoicePracticeSession({
     setPhase("ai-speaking");
     setIsSpeaking(true);
     try {
-      const res = await apiRequest("POST", "/api/tts", { text: prompt.text });
+      const res = await apiRequest("POST", "/api/tts", { text: prompt.line, section: "scenario" });
       const data = await res.json();
       
       if (data.audio) {
@@ -78,11 +78,11 @@ export function VoicePracticeSession({
     }
     
     setTimeout(() => setPhase("ready"), 500);
-  }, [prompt.text]);
+  }, [prompt.line]);
 
   useEffect(() => {
     speakPrompt();
-  }, [prompt.text]);
+  }, [prompt.line]);
 
   useEffect(() => {
     return () => {
@@ -249,8 +249,9 @@ export function VoicePracticeSession({
       >
         <GlassCard className="w-full p-6" data-testid="prompt-card">
           <p className="text-lg text-center leading-relaxed" data-testid="practice-prompt">
-            {prompt.text}
+            {prompt.line}
           </p>
+          <p className="text-sm text-center text-muted-foreground mt-2">Tap to speak.</p>
         </GlassCard>
       </motion.div>
 

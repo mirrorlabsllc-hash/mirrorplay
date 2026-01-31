@@ -3,13 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import { getOpenAI, requireOpenAI, handleOpenAIError, isOpenAIAvailable } from "./services/openaiClient";
-import { getRandomQuestions } from "@shared/questionBank";
+import { PRACTICE_HANDOFFS, DEFAULT_HANDOFF_LINE } from "@shared/promptBank";
 import { getScenarioById, scenarios as builtInScenarios, getDuoScenarios, getDuoScenarioById } from "@shared/scenarios";
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { updateStreak, checkAndAwardBadges, checkGiftBadges } from "./badgeService";
 import { canAnalyze, getSubscriptionTier, getDailyLimit, getDailyUsage } from "./subscriptionLimits";
-import { DEFAULT_VOICES, isElevenLabsAvailable, textToSpeech, createVoiceClone as createVoiceCloneEL, deleteVoiceClone as deleteElevenLabsVoice } from "./elevenLabsClient";
-import { insertUserAvatarSettingsSchema, insertAvatarPresetSchema, insertTestimonialSchema, insertUserFeedbackSchema } from "@shared/schema";
+import { DEFAULT_VOICES, isElevenLabsAvailable, textToSpeech, type TtsSection, createVoiceClone as createVoiceCloneEL, deleteVoiceClone as deleteElevenLabsVoice } from "./elevenLabsClient";
+import { insertUserAvatarSettingsSchema, insertAvatarPresetSchema, insertTestimonialSchema, insertUserFeedbackSchema, type InsertPrototypeFeedback } from "@shared/schema";
 
 /**
  * Get the XP multiplier based on current streak days
@@ -621,37 +621,60 @@ export async function registerRoutes(
 
       // Use different prompts for quick mode vs full mode
       const systemPrompt = quickMode
-        ? `You are an expert communication coach. Provide quick, concise feedback.
+        ? `You are a voice-first communication coach. Deliver spoken-friendly, presence-first analysis. Never ask questions. No theory lectures. Keep it calm, precise, human.
 
-Analyze the user's response to the given scenario and provide:
-1. Tone - Identify the primary tone (e.g., Calm, Assertive, Empathetic, Defensive, Confident)
-2. Score - Rate from 0-100 based on emotional intelligence and clarity
-3. Tip - Provide 1 specific actionable tip for improvement
+Category voice (adapt your wording):
+- relationships: safety, attunement, emotional impact; warm and connecting; avoid corporate jargon.
+- workplace: clarity, ownership, outcomes; professional and steady; avoid therapy language.
+- boundaries: self-respect, calm limits, firmness without edge.
+- conflict/difficult: restraint, tone control, de-escalation under pressure.
 
-Respond in JSON format:
+Difficulty voice (if not provided, assume intermediate):
+- beginner: softer, validating, light on critique.
+- intermediate: balanced reflection + refinement.
+- advanced: sharper, precise, higher expectation of control.
+
+Output fields:
+- tone: primary tone label.
+- score: 0-100.
+- tip: 2-3 short sentences in this order: presence reflection (what they conveyed emotionally), performance insight (how it landed), optional forward cue (tiny adjustment). No questions. No bullet lists. Natural to speak aloud.
+
+JSON only:
 {
   "tone": "string",
   "score": number,
   "tip": "string"
 }`
-        : `You are an expert communication coach and emotional intelligence specialist analyzing communication skills in depth.
-            
-Analyze the user's response to the given scenario thoroughly. Evaluate:
+        : `You are a voice-first communication coach. Deliver presence (emotional awareness) plus performance (communication effectiveness). Never ask questions. No theory or meta commentary. Calm, precise, human.
 
-1. Primary Tone - Identify the dominant tone (Calm, Assertive, Empathetic, Defensive, Aggressive, Passive, Confident, or Anxious)
-2. Secondary Tone - Identify any underlying secondary tone if present
-3. Score - Rate from 0-100 based on emotional intelligence, clarity, and effectiveness
-4. Energy Level - Assess as "low", "medium", or "high"
-5. Pace - Assess as "slow", "moderate", or "fast"
-6. Emotional Clarity - Rate 0-100 how clearly emotions are expressed without confusion
-7. Strengths - List 2-3 specific things the user did well in their response
-8. Areas to Improve - List 2-3 specific areas where the user could improve
-9. Coaching Insight - Provide a personalized, encouraging coaching tip (2-3 sentences) that speaks directly to this response
-10. Alternative Phrasings - Provide 3 alternative ways to express the same message with different tones/approaches
-11. Why It Matters - Explain in 1-2 sentences why the identified tone matters in this specific context
-12. Body Language Suggestion - Suggest what body language or delivery style would complement this message
+Category voice:
+- relationships: safety, attunement, emotional impact; warm and connecting.
+- workplace: clarity, professionalism, boundaries, outcomes.
+- boundaries: firm, calm limits; self-respect without edge.
+- conflict/difficult: regulation under pressure; restraint and de-escalation.
 
-Respond in JSON format:
+Difficulty voice (if not provided, assume intermediate):
+- beginner: softer, validating, light critique.
+- intermediate: balanced reflection + refinement.
+- advanced: sharp, concise, expects control.
+
+Produce concise, spoken-friendly strings (no bullets, no lists in text fields). For any text fields below, avoid questions.
+
+Fields to return:
+- tone: primary tone label
+- secondaryTone: secondary tone label or null
+- score: 0-100
+- energy: "low" | "medium" | "high"
+- pace: "slow" | "moderate" | "fast"
+- emotionalClarity: 0-100 clarity
+- strengths: 2-3 short observation sentences (presence/performance focus)
+- areasToImprove: 2-3 short observation sentences (action-oriented, no questions)
+- coachingInsight: 2-3 sentences in order: presence reflection, performance insight, forward cue. Spoken-friendly, no questions.
+- exampleResponses: 3 concise alternative phrasings (one sentence each; no questions)
+- whyItMatters: 1-2 short sentences linking their delivery to impact
+- bodyLanguageTip: 1 short line on delivery/pace/voice/stance
+
+JSON only:
 {
   "tone": "string",
   "secondaryTone": "string or null",
@@ -659,10 +682,10 @@ Respond in JSON format:
   "energy": "low" | "medium" | "high",
   "pace": "slow" | "moderate" | "fast",
   "emotionalClarity": number,
-  "strengths": ["strength1", "strength2"],
-  "areasToImprove": ["area1", "area2"],
+  "strengths": ["string"],
+  "areasToImprove": ["string"],
   "coachingInsight": "string",
-  "exampleResponses": ["example1", "example2", "example3"],
+  "exampleResponses": ["string", "string", "string"],
   "whyItMatters": "string",
   "bodyLanguageTip": "string"
 }`;
@@ -677,7 +700,7 @@ Respond in JSON format:
           },
           {
             role: "user",
-            content: `Scenario: ${prompt}\n\nUser's Response: ${response}`
+            content: `Category: ${category || "general"}\nScenario: ${prompt}\nUser's Response: ${response}`
           }
         ],
         response_format: { type: "json_object" }
@@ -999,26 +1022,36 @@ Guidelines:
         messages: [
           {
             role: "system",
-            content: `You are an expert communication coach and emotional intelligence specialist analyzing practice responses with empathy and encouragement.
+            content: `You are a voice-first communication coach. Deliver presence (emotional awareness) plus performance (communication effectiveness). Never ask questions. No theory or meta commentary. Calm, precise, human.
             
-Analyze the user's response to the given scenario thoroughly. Evaluate:
+Category voice:
+- relationships: safety, attunement, emotional impact; warm and connecting.
+- workplace: clarity, professionalism, boundaries, outcomes.
+- boundaries: firm, calm limits; self-respect without edge.
+- conflict/difficult: regulation under pressure; restraint and de-escalation.
 
-1. Primary Tone - Identify the dominant tone (Calm, Assertive, Empathetic, Defensive, Aggressive, Passive, Confident, or Anxious)
-2. Secondary Tone - Identify any underlying secondary tone if present
-3. Score - Rate from 0-100 based on emotional intelligence, clarity, and effectiveness
-4. Energy Level - Assess as "low", "medium", or "high"
-5. Pace - Assess as "slow", "moderate", or "fast"
-6. Emotional Clarity - Rate 0-100 how clearly emotions are expressed without confusion
-7. Strengths - List 2-3 specific things the user did well in their response
-8. Areas to Improve - List 2-3 specific areas where the user could improve
-9. Coaching Insight - Provide a personalized, encouraging coaching tip (2-3 sentences) that speaks directly to this response
-10. Alternative Phrasings - Provide 3 alternative ways to express the same message with different tones/approaches
-11. Why It Matters - Explain in 1-2 sentences why the identified tone matters in this specific context
-12. Body Language Suggestion - Suggest what body language or delivery style would complement this message
+Difficulty voice (if not provided, assume intermediate):
+- beginner: softer, validating, light critique.
+- intermediate: balanced reflection + refinement.
+- advanced: sharp, concise, expects control.
 
-Be supportive, never clinical. Frame feedback as exploration, not evaluation.
+Produce concise, spoken-friendly strings (no bullets, no lists in text fields). Avoid questions in any text field.
 
-Respond in JSON format:
+Fields to return:
+- tone: primary tone label
+- secondaryTone: secondary tone label or null
+- score: 0-100
+- energy: "low" | "medium" | "high"
+- pace: "slow" | "moderate" | "fast"
+- emotionalClarity: 0-100 clarity
+- strengths: 2-3 short observation sentences (presence/performance focus)
+- areasToImprove: 2-3 short observation sentences (action-oriented, no questions)
+- coachingInsight: 2-3 sentences in order: presence reflection, performance insight, forward cue. Spoken-friendly, no questions.
+- exampleResponses: 3 concise alternative phrasings (one sentence each; no questions)
+- whyItMatters: 1-2 short sentences linking their delivery to impact
+- bodyLanguageTip: 1 short line on delivery/pace/voice/stance
+
+JSON only:
 {
   "tone": "string",
   "secondaryTone": "string or null",
@@ -1026,17 +1059,17 @@ Respond in JSON format:
   "energy": "low" | "medium" | "high",
   "pace": "slow" | "moderate" | "fast",
   "emotionalClarity": number,
-  "strengths": ["strength1", "strength2"],
-  "areasToImprove": ["area1", "area2"],
+  "strengths": ["string"],
+  "areasToImprove": ["string"],
   "coachingInsight": "string",
-  "exampleResponses": ["example1", "example2", "example3"],
+  "exampleResponses": ["string", "string", "string"],
   "whyItMatters": "string",
   "bodyLanguageTip": "string"
 }`
           },
           {
             role: "user",
-            content: `Scenario: ${prompt}\n\nUser's Spoken Response (transcribed): ${transcribedText}`
+            content: `Category: ${category || "general"}\nScenario: ${prompt}\nUser's Spoken Response (transcribed): ${transcribedText}`
           }
         ],
         response_format: { type: "json_object" }
@@ -1337,9 +1370,12 @@ Respond in JSON format:
       
       if (!capsule) {
         // Create new capsule with random category
-        const categories = ["workplace", "relationships", "boundaries", "empathy", "negotiation", "accountability", "feedback", "needs"];
+        const categories = ["workplace", "relationships", "family", "social", "self-advocacy"];
         const category = categories[Math.floor(Math.random() * categories.length)];
-        const questions = getRandomQuestions(category as any, 3);
+        const questions = Array.from({ length: 3 }, () => {
+          const prompt = PRACTICE_HANDOFFS[Math.floor(Math.random() * PRACTICE_HANDOFFS.length)];
+          return prompt?.line ?? DEFAULT_HANDOFF_LINE;
+        });
         
         capsule = await storage.createDailyCapsule({
           userId,
@@ -1527,7 +1563,7 @@ Be conversational, warm, and supportive. Use "I" statements and ask thoughtful q
         const selectedVoiceId = voiceId || prefs?.selectedVoiceId || "21m00Tcm4TlvDq8ikWAM";
         console.log("Generating TTS with voice ID:", selectedVoiceId);
         
-        const audioBuffer = await textToSpeech(assistantMessage, selectedVoiceId);
+        const audioBuffer = await textToSpeech(assistantMessage, selectedVoiceId, { section: "analysis-how" });
         if (audioBuffer) {
           audioBase64 = audioBuffer.toString("base64");
           console.log("Audio generated, base64 length:", audioBase64.length);
@@ -1637,7 +1673,7 @@ If they have progress, briefly acknowledge it in an encouraging way.`
         const prefs = await storage.getUserVoicePreferences(userId);
         const selectedVoiceId = voiceId || prefs?.selectedVoiceId || "21m00Tcm4TlvDq8ikWAM";
         
-        const audioBuffer = await textToSpeech(greetingText, selectedVoiceId);
+        const audioBuffer = await textToSpeech(greetingText, selectedVoiceId, { section: "scenario" });
         if (audioBuffer) {
           audioBase64 = audioBuffer.toString("base64");
         }
@@ -1697,7 +1733,12 @@ If they have progress, briefly acknowledge it in an encouraging way.`
   app.post("/api/tts", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { text, voiceId } = req.body;
+      const { text, voiceId, section, difficulty } = req.body as {
+        text: string;
+        voiceId?: string;
+        section?: TtsSection | string;
+        difficulty?: "beginner" | "intermediate" | "advanced" | string;
+      };
 
       if (!text || typeof text !== "string") {
         return res.status(400).json({ message: "Text is required" });
@@ -1710,7 +1751,17 @@ If they have progress, briefly acknowledge it in an encouraging way.`
       const prefs = await storage.getUserVoicePreferences(userId);
       const selectedVoiceId = voiceId || prefs?.selectedVoiceId || "21m00Tcm4TlvDq8ikWAM";
 
-      const audioBuffer = await textToSpeech(text.slice(0, 500), selectedVoiceId);
+      const allowedSections: TtsSection[] = ["general", "scenario", "analysis-what", "analysis-how", "analysis-reframe"];
+      const sectionHint: TtsSection = allowedSections.includes(section as TtsSection)
+        ? (section as TtsSection)
+        : "general";
+
+      const difficultyHint = difficulty === "beginner" || difficulty === "advanced" ? difficulty : "intermediate";
+
+      const audioBuffer = await textToSpeech(text.slice(0, 500), selectedVoiceId, {
+        section: sectionHint,
+        difficulty: difficultyHint,
+      });
       
       if (!audioBuffer) {
         return res.status(500).json({ message: "Failed to generate speech" });
@@ -1755,7 +1806,8 @@ If they have progress, briefly acknowledge it in an encouraging way.`
 
       const audioBuffer = await textToSpeech(
         "Hello, I'm your AI companion. How can I help you today?",
-        voiceId
+        voiceId,
+        { section: "general" }
       );
 
       if (!audioBuffer) {
@@ -2629,6 +2681,46 @@ After ${phaseCount * 2} exchanges, if the user has shown good communication skil
     }
   });
 
+  // Manual subscription selection (for non-Stripe environments)
+  app.post("/api/subscription/select", isAuthenticated, async (req: any, res) => {
+    try {
+      const allowManual =
+        process.env.ALLOW_MANUAL_SUBSCRIPTION === "true" ||
+        process.env.NODE_ENV !== "production";
+
+      if (!allowManual) {
+        return res.status(403).json({ message: "Manual subscription selection is disabled" });
+      }
+
+      const userId = req.user.id;
+      const { tier } = req.body as { tier?: string };
+      const allowedTiers = ["free", "peace_plus", "pro_mind"];
+
+      if (!tier || !allowedTiers.includes(tier)) {
+        return res.status(400).json({ message: "Invalid subscription tier" });
+      }
+
+      let subscription = await storage.getSubscription(userId);
+      if (!subscription) {
+        subscription = await storage.createSubscription({
+          userId,
+          tier,
+          status: "active",
+        });
+      } else {
+        subscription = await storage.updateSubscription(userId, {
+          tier,
+          status: "active",
+        });
+      }
+
+      res.json(subscription);
+    } catch (error) {
+      console.error("Error selecting subscription tier:", error);
+      res.status(500).json({ message: "Failed to update subscription" });
+    }
+  });
+
   // Stripe routes
   app.get("/api/stripe/publishable-key", async (_req, res) => {
     try {
@@ -2706,6 +2798,11 @@ After ${phaseCount * 2} exchanges, if the user has shown good communication skil
       const userId = req.user.id;
       const { priceId } = req.body;
 
+      console.log("BACKEND CHECKOUT", {
+        mode: process.env.STRIPE_SECRET_KEY?.startsWith("sk_live") ? "LIVE" : "TEST",
+        priceId,
+      });
+
       if (!priceId) {
         return res.status(400).json({ message: "Price ID is required" });
       }
@@ -2727,20 +2824,48 @@ After ${phaseCount * 2} exchanges, if the user has shown good communication skil
         customerId = customer.id;
       }
 
-      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        payment_method_types: ['card'],
-        line_items: [{ price: priceId, quantity: 1 }],
-        mode: 'subscription',
-        success_url: `${baseUrl}/subscribe?success=true`,
-        cancel_url: `${baseUrl}/subscribe?canceled=true`,
-      });
+      const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol;
+      const host = req.get("host");
+      const baseUrl = process.env.PUBLIC_BASE_URL || `${proto}://${host}`;
+      const createCheckoutSession = async (customer: string) =>
+        stripe.checkout.sessions.create({
+          customer,
+          payment_method_types: ['card'],
+          line_items: [{ price: priceId, quantity: 1 }],
+          mode: 'subscription',
+          success_url: `${baseUrl}/subscribe?success=true`,
+          cancel_url: `${baseUrl}/subscribe?canceled=true`,
+        });
+
+      let session;
+
+      try {
+        session = await createCheckoutSession(customerId);
+      } catch (error: any) {
+        const message = error?.raw?.message || error?.message || "";
+        if (message.includes("No such customer")) {
+          const customer = await stripe.customers.create({
+            email: user.email || undefined,
+            metadata: { userId },
+          });
+          await storage.updateUserStripeCustomerId(userId, customer.id);
+          customerId = customer.id;
+          session = await createCheckoutSession(customerId);
+        } else {
+          throw error;
+        }
+      }
 
       res.json({ url: session.url });
     } catch (error) {
       console.error("Error creating checkout session:", error);
-      res.status(500).json({ message: "Failed to create checkout session" });
+      const err = error as any;
+      res.status(500).json({
+        message: "Failed to create checkout session",
+        error: process.env.NODE_ENV !== "production"
+          ? err?.message || err?.raw?.message || "Unknown error"
+          : undefined,
+      });
     }
   });
 
@@ -2754,7 +2879,9 @@ After ${phaseCount * 2} exchanges, if the user has shown good communication skil
       }
 
       const stripe = await getUncachableStripeClient();
-      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol;
+      const host = req.get("host");
+      const baseUrl = process.env.PUBLIC_BASE_URL || `${proto}://${host}`;
 
       const session = await stripe.billingPortal.sessions.create({
         customer: user.stripeCustomerId,
@@ -2811,7 +2938,9 @@ After ${phaseCount * 2} exchanges, if the user has shown good communication skil
         });
       }
 
-      const baseUrl = `https://${process.env.REPLIT_DOMAINS?.split(',')[0]}`;
+      const proto = (req.headers["x-forwarded-proto"] as string) || req.protocol;
+      const host = req.get("host");
+      const baseUrl = process.env.PUBLIC_BASE_URL || `${proto}://${host}`;
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -6342,6 +6471,22 @@ Respond in JSON format:
     }
   });
 
+  // Prototype feedback (read-only, token gated)
+  app.get("/api/admin/feedback", async (req: any, res) => {
+    try {
+      const token = (req.headers.authorization || "").replace("Bearer ", "");
+      if (!token || token !== process.env.ADMIN_FEEDBACK_TOKEN) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      const feedback = await storage.getPrototypeFeedback(200);
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching prototype feedback:", error);
+      res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
   // Get all beta signups (admin)
   app.get("/api/admin/beta-signups", isAuthenticated, async (req: any, res) => {
     try {
@@ -6372,6 +6517,36 @@ Respond in JSON format:
     } catch (error) {
       console.error("Error fetching testimonials:", error);
       res.status(500).json({ message: "Failed to fetch testimonials" });
+    }
+  });
+
+  // Testimonials - Create (logged-in users, pending approval)
+  app.post("/api/testimonials", isAuthenticated, async (req: any, res) => {
+    try {
+      const publicSchema = insertTestimonialSchema.pick({
+        name: true,
+        content: true,
+      });
+
+      const parseResult = publicSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        return res.status(400).json({
+          message: "Validation failed",
+          errors: parseResult.error.flatten().fieldErrors,
+        });
+      }
+
+      const testimonial = await storage.createTestimonial({
+        ...parseResult.data,
+        rating: 5,
+        featured: false,
+        approved: false,
+      });
+
+      res.json(testimonial);
+    } catch (error) {
+      console.error("Error creating testimonial:", error);
+      res.status(500).json({ message: "Failed to create testimonial" });
     }
   });
 
@@ -6431,6 +6606,10 @@ Respond in JSON format:
   // User Feedback - Submit feedback (authenticated or anonymous)
   app.post("/api/feedback", async (req: any, res) => {
     try {
+      // Accept both legacy user feedback fields and the new prototype feedback payload.
+      const { type, message, consent_public, context, platform, tags, category, difficulty, scenario_id, app_version } = req.body;
+
+      // Persist legacy user_feedback if payload matches schema (preserve existing path)
       const feedbackData = {
         ...req.body,
         userId: req.user?.id || null,
@@ -6438,15 +6617,31 @@ Respond in JSON format:
       };
 
       const parseResult = insertUserFeedbackSchema.safeParse(feedbackData);
-      if (!parseResult.success) {
-        return res.status(400).json({ 
-          message: "Validation failed", 
-          errors: parseResult.error.flatten().fieldErrors 
-        });
+      if (parseResult.success) {
+        await storage.createUserFeedback(parseResult.data);
       }
 
-      const feedback = await storage.createUserFeedback(parseResult.data);
-      res.json(feedback);
+      // Persist into prototype_feedback for internal signal
+      try {
+        const protoEntry = {
+          platform: platform || "web",
+          feedbackText: message || req.body.message || "",
+          tags: tags || [],
+          category: (context && context.category) || category || null,
+          difficulty: (context && context.difficulty) || difficulty || null,
+          scenarioId: (context && context.scenario_id) || scenario_id || null,
+          appVersion: app_version || req.body.app_version || null,
+          anonymousUserId: req.user?.id ? null : (req.body.anonymousUserId || null),
+          type: type || (req.body.type || null),
+          consentPublic: !!consent_public,
+        } as InsertPrototypeFeedback;
+
+        const created = await storage.createPrototypeFeedback(protoEntry);
+        return res.json(created);
+      } catch (err) {
+        console.error("Failed to write prototype feedback:", err);
+        return res.status(500).json({ message: "Failed to submit feedback" });
+      }
     } catch (error) {
       console.error("Error submitting feedback:", error);
       res.status(500).json({ message: "Failed to submit feedback" });

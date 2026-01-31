@@ -1,3 +1,12 @@
+/**
+ * Mirror Play Scenario Rules:
+ * Scenarios are moments, not questions.
+ * No instructional language.
+ * No emotional labels.
+ * No “What would you say?”
+ * Always situational, present tense, minimal
+ */
+
 export interface ScenarioPhase {
   name: string;
   objective: string;
@@ -27,7 +36,7 @@ export const scenarios: Scenario[] = [
     category: "workplace",
     difficulty: 3,
     requiredLevel: 1,
-    context: "You've been working on an innovative solution for weeks. During a team meeting, your colleague presents it as their own idea to the manager.",
+    context: "The meeting just ended.\nYour idea was presented as theirs.\nPeople are packing up.\n\n\"I mean, it just made sense to share it.\"\n\nThey’re looking at you.",
     aiRole: "A defensive colleague who took credit for your work",
     phases: [
       {
@@ -54,7 +63,7 @@ export const scenarios: Scenario[] = [
     category: "workplace",
     difficulty: 4,
     requiredLevel: 8,
-    context: "Your manager has been increasingly micromanaging your work, asking for updates multiple times a day and questioning every small decision.",
+    context: "Your manager pings again.\nAnother update request.\nYour screen is full of half-finished tasks.\n\n\"Just send me what you have so far, okay?\"\n\nYou’ve got the floor.",
     aiRole: "An anxious manager who micromanages out of fear",
     phases: [
       {
@@ -81,7 +90,7 @@ export const scenarios: Scenario[] = [
     category: "workplace",
     difficulty: 4,
     requiredLevel: 12,
-    context: "You've been in your role for two years with excellent performance reviews but no salary increase. You've researched market rates and know you're underpaid.",
+    context: "It’s a scheduled check-in.\nYou’re sitting across from HR.\nYour review was strong, but pay hasn’t moved.\n\n\"We’re tight on budget this cycle.\"\n\nThere’s a pause. Say something.",
     aiRole: "A budget-conscious HR manager",
     phases: [
       {
@@ -108,7 +117,7 @@ export const scenarios: Scenario[] = [
     category: "workplace",
     difficulty: 3,
     requiredLevel: 1,
-    context: "Due to unexpected complications, you realize you won't be able to deliver a critical project component on time. The team is counting on you.",
+    context: "Slack is open to the project channel.\nThe deadline is tomorrow.\nYou know your piece won’t be ready.\n\n\"We’re still on track, right?\"\n\nThey’re waiting for you to say something.",
     aiRole: "A stressed project manager",
     phases: [
       {
@@ -135,7 +144,7 @@ export const scenarios: Scenario[] = [
     category: "relationship",
     difficulty: 3,
     requiredLevel: 1,
-    context: "Over the past few weeks, your partner seems withdrawn. They're less affectionate and spend more time alone. You're worried but don't want to push them away.",
+    context: "It’s quiet tonight.\nThey’ve been distant for weeks.\nThey sit on the edge of the couch.\n\n\"I’m just tired, okay?\"\n\nThere’s a pause. Say something.",
     aiRole: "A partner who is stressed and withdrawing",
     phases: [
       {
@@ -162,7 +171,7 @@ export const scenarios: Scenario[] = [
     category: "relationship",
     difficulty: 4,
     requiredLevel: 6,
-    context: "Your partner wants to make a large purchase you're uncomfortable with. You have different financial priorities and need to find common ground.",
+    context: "The big purchase page is open.\nThey’re excited, you’re not.\nThe number sits between you.\n\n\"It’s not that big of a deal.\"\n\nYou’ve got the floor.",
     aiRole: "A partner with different financial values",
     phases: [
       {
@@ -189,7 +198,7 @@ export const scenarios: Scenario[] = [
     category: "co-parenting",
     difficulty: 4,
     requiredLevel: 15,
-    context: "Your ex-partner frequently asks for schedule changes with little notice, disrupting your plans and creating instability for your child.",
+    context: "Your phone lights up again.\nAnother last-minute change.\nYou already reshuffled plans.\n\n\"Can we swap days this week?\"\n\nThey’re looking at you.",
     aiRole: "A co-parent who is disorganized and defensive",
     phases: [
       {
@@ -216,7 +225,7 @@ export const scenarios: Scenario[] = [
     category: "co-parenting",
     difficulty: 3,
     requiredLevel: 1,
-    context: "Your child is confused because the rules at your house and your co-parent's house are completely different. Bedtimes, screen time, and discipline vary widely.",
+    context: "Your child mentions the other house.\nThe rules sound totally different.\nYou’re both on a call.\n\n\"That’s how I run things over here.\"\n\nThere’s a pause. Say something.",
     aiRole: "A co-parent who disagrees with your parenting approach",
     phases: [
       {
@@ -243,7 +252,7 @@ export const scenarios: Scenario[] = [
     category: "general",
     difficulty: 2,
     requiredLevel: 1,
-    context: "Your friend regularly shows up unannounced, asks intrusive questions, and doesn't respect when you say you're busy.",
+    context: "Your friend is at the door again, unannounced.\nYou said you were busy.\nThey step inside anyway.\n\n\"I was in the neighborhood.\"\n\nYou’ve got the floor.",
     aiRole: "An oblivious friend who doesn't realize they're overstepping",
     phases: [
       {
@@ -270,7 +279,7 @@ export const scenarios: Scenario[] = [
     category: "general",
     difficulty: 3,
     requiredLevel: 1,
-    context: "Your neighbor plays loud music late at night, and previous hints haven't worked. You need to have a direct conversation.",
+    context: "It’s late and the bass is thumping.\nYou step into the hallway.\nThey crack the door.\n\n\"Oh, hey—what’s up?\"\n\nThey’re waiting for you.",
     aiRole: "A neighbor who is unaware of the impact of their behavior",
     phases: [
       {
@@ -297,7 +306,7 @@ export const scenarios: Scenario[] = [
     category: "general",
     difficulty: 2,
     requiredLevel: 1,
-    context: "A stranger in line is being rude and trying to cut ahead. You want to stand up for yourself without escalating the situation.",
+    context: "The line is moving slowly.\nA stranger slides in front of you.\nThey don’t look back.\n\n\"I’m in a hurry.\"\n\nThere’s a pause. Say something.",
     aiRole: "An entitled person who believes they're more important",
     phases: [
       {
@@ -319,7 +328,7 @@ export const scenarios: Scenario[] = [
     category: "general",
     difficulty: 2,
     requiredLevel: 1,
-    context: "You're going through a difficult time and need support from friends or family, but you're worried about being a burden.",
+    context: "You’re staring at your phone.\nYou need to reach out.\nYour thumb hovers over their name.\n\n\"Hey—everything okay?\"\n\nYou’ve got the floor.",
     aiRole: "A caring friend who wants to help",
     phases: [
       {
@@ -345,7 +354,7 @@ export const duoScenarios: Scenario[] = [
     category: "workplace",
     difficulty: 3,
     requiredLevel: 5,
-    context: "One person plays a manager giving constructive feedback, the other plays an employee receiving it. Take turns alternating perspectives.",
+    context: "You’re in a small meeting room.\nNotes are on the table.\nThe review is about to start.\n\n\"Let’s talk about how this quarter went.\"\n\nYou’ve got the floor.",
     aiRole: "",
     duoMode: true,
     roleA: "Manager",
@@ -375,7 +384,7 @@ export const duoScenarios: Scenario[] = [
     category: "relationship",
     difficulty: 2,
     requiredLevel: 1,
-    context: "Partners discuss how to divide household tasks more fairly. Each person shares their perspective on current workload.",
+    context: "The sink is full.\nThe list on the fridge is crossed out.\nYou both pause.\n\n\"I feel like I’m doing most of it.\"\n\nThere’s a pause. Say something.",
     aiRole: "",
     duoMode: true,
     roleA: "Partner A",
@@ -405,7 +414,7 @@ export const duoScenarios: Scenario[] = [
     category: "co-parenting",
     difficulty: 4,
     requiredLevel: 10,
-    context: "Co-parents need to discuss and agree on holiday schedules while prioritizing children's needs and happiness.",
+    context: "The calendar is open.\nHoliday dates are highlighted.\nThe kids are the topic again.\n\n\"I want them on Thanksgiving.\"\n\nYou’ve got the floor.",
     aiRole: "",
     duoMode: true,
     roleA: "Parent A",
@@ -435,7 +444,7 @@ export const duoScenarios: Scenario[] = [
     category: "general",
     difficulty: 3,
     requiredLevel: 3,
-    context: "One person hurt the other unintentionally. Practice both apologizing sincerely and accepting an apology.",
+    context: "You both sit down.\nThe moment is heavy.\nThey finally speak.\n\n\"I didn’t mean to hurt you.\"\n\nThey’re waiting for you to say something.",
     aiRole: "",
     duoMode: true,
     roleA: "Person Apologizing",
@@ -465,7 +474,7 @@ export const duoScenarios: Scenario[] = [
     category: "workplace",
     difficulty: 3,
     requiredLevel: 1,
-    context: "Two team members have different ideas about how to approach a project. Practice finding common ground professionally.",
+    context: "The project plan is on the screen.\nTwo different approaches are open.\nYou both stop talking.\n\n\"I think my way is cleaner.\"\n\nThere’s a pause. Say something.",
     aiRole: "",
     duoMode: true,
     roleA: "Team Member A",

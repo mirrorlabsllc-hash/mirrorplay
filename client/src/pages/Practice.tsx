@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Briefcase, 
   Heart, 
+  Users,
   Shield, 
   Handshake, 
   Scale, 
@@ -38,18 +39,15 @@ import {
   Crown,
   Zap
 } from "lucide-react";
-import { categories, getRandomQuestion } from "@shared/questionBank";
-import type { QuestionCategory } from "@shared/schema";
+import { getRandomHandoffLine, DEFAULT_HANDOFF_LINE } from "@shared/promptBank";
+import { PRACTICE_CATEGORIES, type PracticeCategory } from "@shared/categories";
 
-const categoryConfig: Record<QuestionCategory, { icon: any; color: string; label: string }> = {
+const categoryConfig: Record<PracticeCategory, { icon: any; color: string; label: string }> = {
   workplace: { icon: Briefcase, color: "text-blue-500 bg-blue-500/20", label: "Workplace" },
   relationships: { icon: Heart, color: "text-pink-500 bg-pink-500/20", label: "Relationships" },
-  boundaries: { icon: Shield, color: "text-amber-500 bg-amber-500/20", label: "Boundaries" },
-  empathy: { icon: Handshake, color: "text-emerald-500 bg-emerald-500/20", label: "Empathy" },
-  negotiation: { icon: Scale, color: "text-violet-500 bg-violet-500/20", label: "Negotiation" },
-  accountability: { icon: Hand, color: "text-red-500 bg-red-500/20", label: "Accountability" },
-  feedback: { icon: MessageSquare, color: "text-cyan-500 bg-cyan-500/20", label: "Feedback" },
-  needs: { icon: Lightbulb, color: "text-yellow-500 bg-yellow-500/20", label: "Needs" },
+  family: { icon: Users, color: "text-emerald-500 bg-emerald-500/20", label: "Family" },
+  social: { icon: MessageSquare, color: "text-violet-500 bg-violet-500/20", label: "Social" },
+  "self-advocacy": { icon: Shield, color: "text-amber-500 bg-amber-500/20", label: "Self-Advocacy" },
 };
 
 interface EarnedBadge {
@@ -101,7 +99,7 @@ export default function Practice() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   
-  const [selectedCategory, setSelectedCategory] = useState<QuestionCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<PracticeCategory | null>(null);
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
   const [response, setResponse] = useState("");
   const [analysis, setAnalysis] = useState<TextAnalysisResult | VoiceAnalysisResult | null>(null);
@@ -213,16 +211,16 @@ export default function Practice() {
     },
   });
 
-  const selectCategory = (category: QuestionCategory) => {
+  const selectCategory = (category: PracticeCategory) => {
     setSelectedCategory(category);
-    setCurrentPrompt(getRandomQuestion(category));
+    setCurrentPrompt(getRandomHandoffLine(category) || DEFAULT_HANDOFF_LINE);
     setResponse("");
     setAnalysis(null);
   };
 
   const refreshPrompt = () => {
     if (selectedCategory) {
-      setCurrentPrompt(getRandomQuestion(selectedCategory));
+      setCurrentPrompt(getRandomHandoffLine(selectedCategory) || DEFAULT_HANDOFF_LINE);
       setResponse("");
       setAnalysis(null);
     }
@@ -344,13 +342,13 @@ export default function Practice() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          {categories.map((category, index) => {
-            const config = categoryConfig[category as QuestionCategory];
+          {PRACTICE_CATEGORIES.map(({ id }, index) => {
+            const config = categoryConfig[id];
             const Icon = config.icon;
             
             return (
               <motion.div
-                key={category}
+                key={id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
@@ -359,8 +357,8 @@ export default function Practice() {
                   variant="dark" 
                   hover 
                   className="cursor-pointer"
-                  onClick={() => selectCategory(category as QuestionCategory)}
-                  data-testid={`card-category-${category}`}
+                  onClick={() => selectCategory(id)}
+                  data-testid={`card-category-${id}`}
                 >
                   <div className="flex flex-col items-center text-center py-4 gap-3">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${config.color.split(" ")[1]}`}>
@@ -429,10 +427,7 @@ export default function Practice() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <UserAvatar 
-          mood={isLoading ? "calm" : analysis ? "warm" : "calm"} 
-          size="lg" 
-        />
+        <UserAvatar size="lg" />
       </motion.div>
 
       {/* Prompt */}

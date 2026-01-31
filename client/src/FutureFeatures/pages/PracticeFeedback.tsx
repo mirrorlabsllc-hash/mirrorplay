@@ -101,7 +101,7 @@ export default function PracticeFeedback() {
 
   const ttsMutation = useMutation({
     mutationFn: async (text: string) => {
-      const res = await apiRequest("POST", "/api/tts", { text });
+      const res = await apiRequest("POST", "/api/tts", { text, section: "scenario" });
       return res.json();
     },
     onSuccess: (data) => {

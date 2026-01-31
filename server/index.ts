@@ -1,3 +1,5 @@
+const IS_REPLIT = !!process.env.REPLIT_DOMAINS;
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
@@ -28,6 +30,10 @@ export function log(message: string, source = "express") {
 }
 
 async function initStripe() {
+  if (!IS_REPLIT) {
+    console.log("Stripe skipped (not running on Replit)");
+    return;
+  }
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
@@ -37,9 +43,10 @@ async function initStripe() {
 
   try {
     console.log('Initializing Stripe schema...');
-    await runMigrations({ 
+    await runMigrations({
       databaseUrl,
-      schema: 'stripe'
+      // @ts-expect-error stripe schema option not in type definitions
+      schema: "stripe",
     });
     console.log('Stripe schema ready');
 
@@ -164,14 +171,21 @@ async function initStripe() {
   }
 
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+
+  if (IS_REPLIT) {
+    httpServer.listen(
+      {
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      },
+      () => {
+        log(`serving on port ${port} (Replit)`);
+      },
+    );
+  } else {
+    httpServer.listen(port, () => {
+      log(`serving locally at http://localhost:${port}`);
+    });
+  }
 })();

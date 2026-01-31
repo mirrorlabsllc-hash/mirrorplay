@@ -1,74 +1,81 @@
-export interface PracticePrompt {
+export interface PracticeHandoff {
   id: string;
   category: string;
-  text: string;
-  context?: string;
+  line: string;
   difficulty: "beginner" | "intermediate" | "advanced";
 }
 
-export const PRACTICE_PROMPTS: PracticePrompt[] = [
+export const DEFAULT_HANDOFF_LINE = "They’ve just shared something difficult. They’re watching your face for a response.";
+
+export const PRACTICE_HANDOFFS: PracticeHandoff[] = [
   // Workplace
-  { id: "w1", category: "workplace", text: "Your coworker keeps interrupting you during meetings. How would you address this?", difficulty: "intermediate" },
-  { id: "w2", category: "workplace", text: "You need to ask your manager for a deadline extension. What do you say?",  difficulty: "beginner" },
-  { id: "w3", category: "workplace", text: "A teammate took credit for your idea. How would you bring this up?", difficulty: "advanced" },
-  { id: "w4", category: "workplace", text: "You disagree with a decision your boss made. How do you express your concerns?", difficulty: "intermediate" },
-  { id: "w5", category: "workplace", text: "Practice giving constructive feedback to a junior colleague about their work.", difficulty: "intermediate" },
+  { id: "w1", category: "workplace", line: "In the meeting, a coworker cuts you off again mid-sentence. The room waits.", difficulty: "intermediate" },
+  { id: "w2", category: "workplace", line: "Your manager says the deadline is tomorrow, but you need more time. They’re waiting for your response.",  difficulty: "beginner" },
+  { id: "w3", category: "workplace", line: "The team wraps up and your boss thanks a teammate for the idea you shared last week. Eyes drift to you.", difficulty: "advanced" },
+  { id: "w4", category: "workplace", line: "The decision is set and the team nods along. You don’t agree, and they’re looking at you.", difficulty: "intermediate" },
+  { id: "w5", category: "workplace", line: "A junior teammate hands you their draft and waits for your reaction across the table.", difficulty: "intermediate" },
   
   // Relationships
-  { id: "r1", category: "relationships", text: "Your partner seems distant lately. How would you start a caring conversation?", difficulty: "beginner" },
-  { id: "r2", category: "relationships", text: "A friend keeps canceling plans last minute. How do you express how this affects you?", difficulty: "intermediate" },
-  { id: "r3", category: "relationships", text: "You need to apologize for something you said that hurt someone. What would you say?", difficulty: "intermediate" },
-  { id: "r4", category: "relationships", text: "Someone you care about is going through a hard time. How do you offer support?", difficulty: "beginner" },
-  { id: "r5", category: "relationships", text: "You want to reconnect with someone you've grown apart from. What would you say?", difficulty: "advanced" },
+  { id: "r1", category: "relationships", line: "On the couch, your partner answers you with short, distant replies. They glance over, waiting.", difficulty: "beginner" },
+  { id: "r2", category: "relationships", line: "A friend texts, “sorry, gotta bail again.” The chat bubble blinks for you.", difficulty: "intermediate" },
+  { id: "r3", category: "relationships", line: "Across from you, they sit quiet after what you said. The pause stretches.", difficulty: "intermediate" },
+  { id: "r4", category: "relationships", line: "They slump in their chair and finally share what’s weighing on them. Their eyes stay on you.", difficulty: "beginner" },
+  { id: "r5", category: "relationships", line: "You meet after months apart. They smile politely, then wait in the small silence.", difficulty: "advanced" },
   
   // Empathy
-  { id: "e1", category: "empathy", text: "A friend just lost their job. How would you respond with understanding?", difficulty: "beginner" },
-  { id: "e2", category: "empathy", text: "Someone shares they're struggling with anxiety. What would you say?", difficulty: "intermediate" },
-  { id: "e3", category: "empathy", text: "A colleague is upset about feedback they received. How do you show you understand?", difficulty: "intermediate" },
-  { id: "e4", category: "empathy", text: "A family member is frustrated about something you don't fully understand. How do you respond?", difficulty: "advanced" },
-  { id: "e5", category: "empathy", text: "Someone made a mistake and feels embarrassed. What would you say to comfort them?", difficulty: "beginner" },
+  { id: "e1", category: "empathy", line: "A friend blurts out, “I just got let go.” Their voice cracks. They wait for you.", difficulty: "beginner" },
+  { id: "e2", category: "empathy", line: "They admit quietly, “I’ve been feeling anxious all the time.” They watch your face.", difficulty: "intermediate" },
+  { id: "e3", category: "empathy", line: "A colleague tosses the feedback sheet down, eyes wet. “I thought I did fine.”", difficulty: "intermediate" },
+  { id: "e4", category: "empathy", line: "A family member vents, frustrated and tangled. “You don’t get it.” They look to you.", difficulty: "advanced" },
+  { id: "e5", category: "empathy", line: "They fumble a task, blush, and mutter, “That was dumb.” Their eyes drop, waiting.", difficulty: "beginner" },
   
   // Boundaries
-  { id: "b1", category: "boundaries", text: "A family member keeps asking personal questions you're not comfortable answering. What do you say?", difficulty: "intermediate" },
-  { id: "b2", category: "boundaries", text: "Your boss asks you to work over the weekend when you have plans. How do you respond?", difficulty: "intermediate" },
-  { id: "b3", category: "boundaries", text: "A friend always vents to you but never asks how you're doing. How would you address this?", difficulty: "advanced" },
-  { id: "b4", category: "boundaries", text: "Someone keeps pushing you to make a decision before you're ready. What do you say?", difficulty: "beginner" },
-  { id: "b5", category: "boundaries", text: "You need to say no to taking on more responsibilities. How would you phrase it?", difficulty: "beginner" },
+  { id: "b1", category: "boundaries", line: "At dinner, a relative presses with personal questions. Forks pause over plates.", difficulty: "intermediate" },
+  { id: "b2", category: "boundaries", line: "A ping from your boss: “Can you cover this weekend.” The cursor blinks.", difficulty: "intermediate" },
+  { id: "b3", category: "boundaries", line: "Your friend starts venting again, never asking about you. They lean in, expecting.", difficulty: "advanced" },
+  { id: "b4", category: "boundaries", line: "They push, “So what’s it gonna be.” Their gaze doesn’t break.", difficulty: "beginner" },
+  { id: "b5", category: "boundaries", line: "Your manager slides over another task. “Can you take this too.” Papers wait between you.", difficulty: "beginner" },
   
   // Confidence
-  { id: "c1", category: "confidence", text: "Introduce yourself at a networking event in a memorable way.", difficulty: "beginner" },
-  { id: "c2", category: "confidence", text: "You're asked to share your opinion in a group where others disagree. What do you say?", difficulty: "intermediate" },
-  { id: "c3", category: "confidence", text: "Practice asking for what you deserve in a negotiation.", difficulty: "advanced" },
-  { id: "c4", category: "confidence", text: "Someone questions your expertise. How do you respond with confidence?", difficulty: "intermediate" },
-  { id: "c5", category: "confidence", text: "You need to present an idea you believe in to skeptical listeners. How do you start?", difficulty: "advanced" },
+  { id: "c1", category: "confidence", line: "The circle at the meetup turns to you. The host nods for your intro.", difficulty: "beginner" },
+  { id: "c2", category: "confidence", line: "The room is split. Someone says, “You haven’t weighed in yet.” Eyes shift to you.", difficulty: "intermediate" },
+  { id: "c3", category: "confidence", line: "Across the table, they slide the offer over. “So… does this work for you.” Silence follows.", difficulty: "advanced" },
+  { id: "c4", category: "confidence", line: "They ask, “Are you sure you can handle this.” Their brow lifts.", difficulty: "intermediate" },
+  { id: "c5", category: "confidence", line: "In the boardroom, arms are folded. “We’re not convinced yet.” They wait for your opening.", difficulty: "advanced" },
   
   // Difficult Talks
-  { id: "d1", category: "difficult", text: "You need to end a friendship that's become toxic. How would you approach this?", difficulty: "advanced" },
-  { id: "d2", category: "difficult", text: "A loved one has a habit that's affecting your relationship. How do you bring it up?", difficulty: "intermediate" },
-  { id: "d3", category: "difficult", text: "You witnessed something unfair and need to speak up. What would you say?", difficulty: "intermediate" },
-  { id: "d4", category: "difficult", text: "Someone is making assumptions about you that aren't true. How do you correct them?", difficulty: "beginner" },
-  { id: "d5", category: "difficult", text: "You need to have an honest conversation about finances with your partner.", difficulty: "advanced" },
+  { id: "d1", category: "difficult", line: "At the café, your friend chats like nothing’s wrong. You know you need to end this. The pause hangs.", difficulty: "advanced" },
+  { id: "d2", category: "difficult", line: "That habit surfaces again. They notice your face change and stop mid-motion.", difficulty: "intermediate" },
+  { id: "d3", category: "difficult", line: "The group saw what happened. Silence settles. A few eyes flick to you.", difficulty: "intermediate" },
+  { id: "d4", category: "difficult", line: "They state a wrong assumption about you and wait for a nod.", difficulty: "beginner" },
+  { id: "d5", category: "difficult", line: "Bills spread across the table. “We need to talk numbers,” they say, looking at you.", difficulty: "advanced" },
   
-  // Goals
-  { id: "g1", category: "goals", text: "Share your biggest goal for this year and why it matters to you.", difficulty: "beginner" },
-  { id: "g2", category: "goals", text: "Explain to someone why you're making a life change they don't understand.", difficulty: "intermediate" },
-  { id: "g3", category: "goals", text: "Practice asking a mentor for guidance on achieving your goals.", difficulty: "intermediate" },
-  { id: "g4", category: "goals", text: "You're feeling stuck. Express what's holding you back and what help you need.", difficulty: "advanced" },
-  { id: "g5", category: "goals", text: "Celebrate a recent accomplishment by sharing what you're proud of.", difficulty: "beginner" },
-  
-  // Stress Relief
-  { id: "s1", category: "stress", text: "Describe how you're feeling right now in this moment, without judgment.", difficulty: "beginner" },
-  { id: "s2", category: "stress", text: "Practice expressing frustration in a healthy, constructive way.", difficulty: "intermediate" },
-  { id: "s3", category: "stress", text: "Talk through what's overwhelming you and identify one small step forward.", difficulty: "intermediate" },
-  { id: "s4", category: "stress", text: "Practice asking for help when you're stressed without feeling guilty.", difficulty: "advanced" },
-  { id: "s5", category: "stress", text: "Share three things you're grateful for right now.", difficulty: "beginner" },
+  // Goals and stress prompts moved out of Practice for now.
 ];
 
-export function getPromptsForCategory(categoryId: string): PracticePrompt[] {
-  return PRACTICE_PROMPTS.filter(p => p.category === categoryId);
+export function getHandoffsForCategory(categoryId: string): PracticeHandoff[] {
+  return PRACTICE_HANDOFFS.filter(p => p.category === categoryId);
 }
 
-export function getRandomPrompt(categoryId: string): PracticePrompt {
-  const categoryPrompts = getPromptsForCategory(categoryId);
+export function getRandomHandoff(categoryId: string): PracticeHandoff {
+  const categoryPrompts = getHandoffsForCategory(categoryId);
+  if (!categoryPrompts.length) {
+    return {
+      id: `${categoryId}-default`,
+      category: categoryId,
+      line: DEFAULT_HANDOFF_LINE,
+      difficulty: "beginner",
+    };
+  }
+
   return categoryPrompts[Math.floor(Math.random() * categoryPrompts.length)];
+}
+
+export function getRandomHandoffLine(categoryId?: string): string {
+  if (categoryId) {
+    return getRandomHandoff(categoryId).line;
+  }
+
+  const random = PRACTICE_HANDOFFS[Math.floor(Math.random() * PRACTICE_HANDOFFS.length)];
+  return random?.line ?? DEFAULT_HANDOFF_LINE;
 }

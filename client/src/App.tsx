@@ -32,6 +32,8 @@ import FAQ from "@/pages/FAQ";
 import Privacy from "@/pages/Privacy";
 import ToneJourney from "@/pages/ToneJourney";
 import NotFound from "@/pages/not-found";
+import VoiceSettings from "@/FutureFeatures/pages/VoiceSettings";
+import AdminFeedback from "@/pages/AdminFeedback";
 
 const pageTransition = {
   initial: { opacity: 0, y: 12 },
@@ -73,10 +75,12 @@ function AnimatedRoutes() {
           {/* Profile sub-routes */}
           <Route path="/settings" component={Settings} />
           <Route path="/subscribe" component={Subscribe} />
+          <Route path="/voice" component={VoiceSettings} />
           
           {/* Public pages accessible when logged in */}
           <Route path="/faq" component={FAQ} />
           <Route path="/privacy" component={Privacy} />
+          <Route path="/admin/feedback" component={AdminFeedback} />
           
           <Route component={NotFound} />
         </Switch>
