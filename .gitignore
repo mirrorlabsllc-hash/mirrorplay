@@ -7,3 +7,4 @@ dist/
 .env.production
 *.tar.gz
 .cache/
+*.zip
