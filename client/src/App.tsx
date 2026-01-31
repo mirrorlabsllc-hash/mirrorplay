@@ -212,6 +212,7 @@ function Router() {
     return <LoadingScreen />;
   }
 
+  console.log("AUTH RESOLVED", { user: !!user, isLoading, initialized });
   return user ? <AuthenticatedApp /> : <UnauthenticatedApp />;
 }
 
