@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 import { Loader2, Mail, ArrowLeft, AlertCircle } from "lucide-react";
 import { SiGoogle, SiApple } from "react-icons/si";
 
@@ -66,24 +67,46 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const endpoint = isRegistering ? "/api/auth/register" : "/api/auth/login";
-      const body = isRegistering
-        ? formData
-        : { email: formData.email, password: formData.password };
+      if (isRegistering) {
+        const { error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+            },
+          },
+        });
 
-      const res = await apiRequest("POST", endpoint, body);
+        if (error) {
+          throw error;
+        }
+
+        toast({
+          title: "Check your email",
+          description: "Confirm your email to finish creating your account.",
+        });
+        setIsRegistering(false);
+        return;
+      }
+
+      const res = await apiRequest("POST", "/api/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
       const data = await res.json();
 
       if (data.user) {
         await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
         toast({
-          title: isRegistering ? "Account created!" : "Welcome back!",
+          title: "Welcome back!",
           description: "Redirecting to your practice hub...",
         });
         setLocation("/");
       } else if (data.message) {
         toast({
-          title: isRegistering ? "Registration failed" : "Login failed",
+          title: "Login failed",
           description: data.message,
           variant: "destructive",
         });
@@ -99,8 +122,18 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+
+    if (error) {
+      toast({
+        title: "Google sign-in failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

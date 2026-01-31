@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import ConnectPgSimple from "connect-pg-simple";
 import type { Express, RequestHandler } from "express";
+import { createClient } from "@supabase/supabase-js";
 import { pool } from "./db";
 import { storage } from "./storage";
 
@@ -19,6 +20,14 @@ declare module "express-session" {
 }
 
 export async function setupAuth(app: Express) {
+  const supabaseUrl =
+    process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAdmin =
+    supabaseUrl && supabaseServiceRoleKey
+      ? createClient(supabaseUrl, supabaseServiceRoleKey)
+      : null;
+
   const sessionSecret =
     process.env.SESSION_SECRET ??
     (process.env.NODE_ENV === "production"
@@ -36,6 +45,7 @@ export async function setupAuth(app: Express) {
         tableName: "sessions",
         createTableIfMissing: false,
       }),
+      proxy: process.env.NODE_ENV === "production",
       secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
@@ -64,7 +74,11 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  if (
+    process.env.GOOGLE_CLIENT_ID &&
+    process.env.GOOGLE_CLIENT_SECRET &&
+    process.env.GOOGLE_OAUTH_DISABLED !== "true"
+  ) {
     const protocol =
       process.env.GOOGLE_OAUTH_PROTOCOL ??
       (process.env.NODE_ENV === "production" ? "https" : "http");
@@ -157,13 +171,21 @@ export async function setupAuth(app: Express) {
         })(req, res, next);
       }
     );
-  } else {
+  } else if (process.env.GOOGLE_OAUTH_DISABLED !== "true") {
     app.get("/api/auth/google", (_req, res) => {
       res.redirect("/login?error=google_unavailable");
     });
 
     app.get("/api/auth/google/callback", (_req, res) => {
       res.redirect("/login?error=google_unavailable");
+    });
+  } else {
+    app.get("/api/auth/google", (_req, res) => {
+      res.status(410).json({ message: "Google OAuth disabled" });
+    });
+
+    app.get("/api/auth/google/callback", (_req, res) => {
+      res.status(410).json({ message: "Google OAuth disabled" });
     });
   }
 
@@ -241,6 +263,94 @@ export async function setupAuth(app: Express) {
           ? err?.message || err?.detail || "Unknown error"
           : undefined,
       });
+    }
+  });
+
+  app.post("/api/auth/supabase", async (req, res) => {
+    try {
+      if (!supabaseAdmin) {
+        return res.status(500).json({ message: "Supabase admin not configured" });
+      }
+
+      const accessToken = req.body?.accessToken as string | undefined;
+      if (!accessToken) {
+        return res.status(400).json({ message: "Missing access token" });
+      }
+
+      const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+      if (error || !data?.user) {
+        return res.status(401).json({ message: "Invalid Supabase session" });
+      }
+
+      const supaUser = data.user;
+      const email = supaUser.email;
+      if (!email) {
+        return res.status(400).json({ message: "Supabase user missing email" });
+      }
+
+      const metadata = (supaUser.user_metadata || {}) as Record<string, any>;
+      const provider =
+        (supaUser.app_metadata as Record<string, any> | undefined)?.provider ??
+        "supabase";
+
+      const fullName =
+        metadata.full_name || metadata.name || metadata.fullName || "";
+      const derivedFirst =
+        metadata.firstName ||
+        metadata.first_name ||
+        metadata.given_name ||
+        (fullName ? String(fullName).split(" ")[0] : "");
+      const derivedLast =
+        metadata.lastName ||
+        metadata.last_name ||
+        metadata.family_name ||
+        (fullName
+          ? String(fullName).split(" ").slice(1).join(" ")
+          : "");
+
+      const profileImageUrl =
+        metadata.avatar_url || metadata.picture || metadata.profileImageUrl || "";
+
+      let user = await storage.getUserByEmail(email);
+
+      if (user) {
+        if (user.authProvider !== provider || user.authProviderId !== supaUser.id) {
+          user = await storage.updateUser(user.id, {
+            authProvider: provider,
+            authProviderId: supaUser.id,
+            emailVerified: true,
+            profileImageUrl: user.profileImageUrl || profileImageUrl,
+          }) || user;
+        }
+      } else {
+        user = await storage.createUser({
+          email,
+          firstName: derivedFirst,
+          lastName: derivedLast,
+          profileImageUrl,
+          authProvider: provider,
+          authProviderId: supaUser.id,
+          emailVerified: true,
+        });
+      }
+
+      req.login(user, (err) => {
+        if (err) {
+          console.error("Supabase session login failed:", err);
+          return res.status(500).json({ message: "Login failed" });
+        }
+        res.json({
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+        });
+      });
+    } catch (error) {
+      console.error("Supabase auth exchange error:", error);
+      res.status(500).json({ message: "Supabase auth failed" });
     }
   });
 

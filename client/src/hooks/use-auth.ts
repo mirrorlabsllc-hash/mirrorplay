@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@shared/models/auth";
+import { apiRequest } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
 
 async function fetchUser(): Promise<User | null> {
   const response = await fetch("/api/auth/user", {
@@ -30,19 +32,36 @@ export function useAuth() {
     if (initialized) return;
     let active = true;
 
-    queryClient
-      .fetchQuery({
-        queryKey: ["/api/auth/user"],
-        queryFn: fetchUser,
-        retry: false,
-        staleTime: 1000 * 60 * 5, // 5 minutes
-      })
-      .catch(() => {
-        // Swallow errors so auth can still resolve.
-      })
-      .finally(() => {
-        if (active) setInitialized(true);
-      });
+    const initialize = async () => {
+      let currentUser: User | null = null;
+
+      try {
+        currentUser = await fetchUser();
+      } catch {
+        currentUser = null;
+      }
+
+      if (!currentUser) {
+        try {
+          const { data } = await supabase.auth.getSession();
+          const accessToken = data.session?.access_token;
+
+          if (accessToken) {
+            await apiRequest("POST", "/api/auth/supabase", { accessToken });
+            currentUser = await fetchUser();
+          }
+        } catch {
+          // Ignore Supabase exchange errors to avoid blocking boot.
+        }
+      }
+
+      if (active) {
+        queryClient.setQueryData(["/api/auth/user"], currentUser);
+        setInitialized(true);
+      }
+    };
+
+    initialize();
 
     return () => {
       active = false;
