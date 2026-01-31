@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -29,6 +29,27 @@ async function logout(): Promise<void> {
 export function useAuth() {
   const queryClient = useQueryClient();
   const [initialized, setInitialized] = useState(false);
+  const lastExchangedTokenRef = useRef<string | null>(null);
+
+  const exchangeSupabaseSession = useCallback(
+    async (accessToken: string | null | undefined) => {
+      if (!accessToken) return null;
+      if (lastExchangedTokenRef.current === accessToken) {
+        return queryClient.getQueryData<User | null>(["/api/auth/user"]) ?? null;
+      }
+      lastExchangedTokenRef.current = accessToken;
+
+      try {
+        await apiRequest("POST", "/api/auth/supabase", { accessToken });
+        const user = await fetchUser();
+        queryClient.setQueryData(["/api/auth/user"], user);
+        return user;
+      } catch {
+        return null;
+      }
+    },
+    [queryClient]
+  );
 
   useEffect(() => {
     if (initialized) return;
@@ -46,12 +67,9 @@ export function useAuth() {
       if (!currentUser) {
         try {
           const { data } = await supabase.auth.getSession();
-          const accessToken = data.session?.access_token;
-
-          if (accessToken) {
-            await apiRequest("POST", "/api/auth/supabase", { accessToken });
-            currentUser = await fetchUser();
-          }
+          currentUser = await exchangeSupabaseSession(
+            data.session?.access_token
+          );
         } catch {
           // Ignore Supabase exchange errors to avoid blocking boot.
         }
@@ -68,7 +86,17 @@ export function useAuth() {
     return () => {
       active = false;
     };
-  }, [initialized, queryClient]);
+  }, [initialized, queryClient, exchangeSupabaseSession]);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      exchangeSupabaseSession(session?.access_token);
+    });
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, [exchangeSupabaseSession]);
 
   const { data: user } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
