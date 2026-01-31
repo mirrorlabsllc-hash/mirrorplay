@@ -167,29 +167,38 @@ function LoadingScreen() {
 }
 
 // Safely initialize HelloSkip with timeout to prevent blocking
-// Option 1: Gate behind env flag for production control
-// Option 2: Fail-open with timeout and try-catch
+// Gate behind env flag for production control
 function initializeHelloSkip() {
-  // Option 1: Check environment variable
-  const skipEnabled = import.meta.env.VITE_SKIP_ENABLED === 'true';
-  
-  if (!skipEnabled) {
-    console.log('HelloSkip disabled via VITE_SKIP_ENABLED');
+  // Check environment variable - must be string 'true' not boolean
+  if (import.meta.env.VITE_SKIP_ENABLED !== 'true') {
+    console.log('HelloSkip disabled via VITE_SKIP_ENABLED environment variable');
     return;
   }
 
-  // Option 2: Set a timeout to ensure the app loads even if HelloSkip fails
+  // Set a timeout to ensure the app loads even if HelloSkip fails
   const timeoutId = setTimeout(() => {
     console.warn('HelloSkip initialization timed out, continuing app load');
   }, 3000); // 3 second timeout
 
   try {
-    // Check if HelloSkip is already loaded
-    if (typeof (window as any).HelloSkip !== 'undefined') {
+    // Load HelloSkip script dynamically
+    const script = document.createElement('script');
+    script.src = 'https://helloskip.com/agent.js';
+    script.setAttribute('data-agent-id', 'Peg1BLQyFb8lqkSQkoto');
+    
+    script.onload = () => {
       clearTimeout(timeoutId);
-      console.log('HelloSkip initialized');
-    }
+      console.log('HelloSkip loaded successfully');
+    };
+    
+    script.onerror = () => {
+      clearTimeout(timeoutId);
+      console.warn('HelloSkip script failed to load, continuing app load');
+    };
+    
+    document.head.appendChild(script);
   } catch (e) {
+    clearTimeout(timeoutId);
     console.warn('HelloSkip initialization failed, continuing app load', e);
   }
 }
