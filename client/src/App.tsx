@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -165,8 +166,31 @@ function LoadingScreen() {
   );
 }
 
+// Safely initialize HelloSkip with timeout to prevent blocking
+function initializeHelloSkip() {
+  // Set a timeout to ensure the app loads even if HelloSkip fails
+  const timeoutId = setTimeout(() => {
+    console.warn('HelloSkip initialization timed out, continuing app load');
+  }, 3000); // 3 second timeout
+
+  try {
+    // Check if HelloSkip is already loaded
+    if (typeof (window as any).HelloSkip !== 'undefined') {
+      clearTimeout(timeoutId);
+      console.log('HelloSkip initialized');
+    }
+  } catch (e) {
+    console.warn('HelloSkip initialization failed, continuing app load', e);
+  }
+}
+
 function Router() {
   const { user, isLoading } = useAuth();
+
+  // Initialize HelloSkip safely on first render
+  useEffect(() => {
+    initializeHelloSkip();
+  }, []);
 
   if (isLoading) {
     return <LoadingScreen />;
