@@ -191,17 +191,19 @@ function Router() {
     } else {
       console.log('HelloSkip fully disabled at bootstrap');
     }
+    setInitialized(true);
   }, []);
 
   // Force boot after 3 seconds as safety net
   useEffect(() => {
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       console.warn("FORCING BOOT");
       setInitialized(true);
     }, 3000);
+    return () => clearTimeout(timeoutId);
   }, []);
 
-  if (isLoading) {
+  if (isLoading || !initialized) {
     return <LoadingScreen />;
   }
 
