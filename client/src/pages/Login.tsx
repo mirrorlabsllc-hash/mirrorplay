@@ -8,7 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2, Mail, ArrowLeft, AlertCircle } from "lucide-react";
 import { SiGoogle, SiApple } from "react-icons/si";
-import mirrorLabsLogo from "@assets/unnamed_1769507171068.jpg";
+
+const mirrorLabsLogo = "/images/login-bg.jpg";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -113,7 +114,7 @@ export default function Login() {
           <Link href="/">
             <a className="inline-flex items-center gap-2 mb-6">
               <img
-                src={mirrorLabsLogo}
+                src="/images/login-bg.jpg"
                 alt="Mirror Labs"
                 className="w-12 h-12 rounded-lg"
               />
