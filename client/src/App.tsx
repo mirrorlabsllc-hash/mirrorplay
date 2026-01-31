@@ -167,8 +167,18 @@ function LoadingScreen() {
 }
 
 // Safely initialize HelloSkip with timeout to prevent blocking
+// Option 1: Gate behind env flag for production control
+// Option 2: Fail-open with timeout and try-catch
 function initializeHelloSkip() {
-  // Set a timeout to ensure the app loads even if HelloSkip fails
+  // Option 1: Check environment variable
+  const skipEnabled = import.meta.env.VITE_SKIP_ENABLED === 'true';
+  
+  if (!skipEnabled) {
+    console.log('HelloSkip disabled via VITE_SKIP_ENABLED');
+    return;
+  }
+
+  // Option 2: Set a timeout to ensure the app loads even if HelloSkip fails
   const timeoutId = setTimeout(() => {
     console.warn('HelloSkip initialization timed out, continuing app load');
   }, 3000); // 3 second timeout
