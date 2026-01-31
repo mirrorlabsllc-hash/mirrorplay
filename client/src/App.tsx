@@ -156,11 +156,13 @@ function UnauthenticatedApp() {
 }
 
 function LoadingScreen() {
+  console.log("LoadingScreen rendering - checking stack...");
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <div className="text-center">
+      <div className="text-center" style={{ color: "white" }}>
         <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
         <p className="text-muted-foreground">Loading Mirror Play...</p>
+        <p style={{ fontSize: "12px", marginTop: "20px", color: "#888" }}>Rendering from top-level gate</p>
       </div>
     </div>
   );
@@ -203,6 +205,7 @@ function Router() {
 
   // 1. Still booting
   if (isLoading || !initialized) {
+    console.log("GATE 1: Still booting", { isLoading, initialized });
     return <LoadingScreen />;
   }
 
@@ -210,10 +213,12 @@ function Router() {
 
   // 2. Booted, NOT logged in
   if (!user) {
+    console.log("GATE 2: Booted, not logged in");
     return <UnauthenticatedApp />;
   }
 
   // 3. Booted, logged in
+  console.log("GATE 3: Booted, logged in");
   return <AuthenticatedApp />;
 }
 
