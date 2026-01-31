@@ -168,47 +168,27 @@ function LoadingScreen() {
 
 // Safely initialize HelloSkip with timeout to prevent blocking
 // Gate behind env flag for production control
-function initializeHelloSkip() {
-  // Check environment variable - must be string 'true' not boolean
-  if (import.meta.env.VITE_SKIP_ENABLED !== 'true') {
-    console.log('HelloSkip disabled via VITE_SKIP_ENABLED environment variable');
-    return;
-  }
-
-  // Set a timeout to ensure the app loads even if HelloSkip fails
-  const timeoutId = setTimeout(() => {
-    console.warn('HelloSkip initialization timed out, continuing app load');
-  }, 3000); // 3 second timeout
-
+async function initializeHelloSkip() {
+  // Dynamic import keeps HelloSkip code out of the main bundle.
   try {
-    // Load HelloSkip script dynamically
-    const script = document.createElement('script');
-    script.src = 'https://helloskip.com/agent.js';
-    script.setAttribute('data-agent-id', 'Peg1BLQyFb8lqkSQkoto');
-    
-    script.onload = () => {
-      clearTimeout(timeoutId);
-      console.log('HelloSkip loaded successfully');
-    };
-    
-    script.onerror = () => {
-      clearTimeout(timeoutId);
-      console.warn('HelloSkip script failed to load, continuing app load');
-    };
-    
-    document.head.appendChild(script);
+    const mod = await import('./lib/helloskip');
+    // call loader from dynamically imported module
+    mod.loadHelloSkip();
   } catch (e) {
-    clearTimeout(timeoutId);
-    console.warn('HelloSkip initialization failed, continuing app load', e);
+    console.warn('HelloSkip dynamic import failed, continuing app load', e);
   }
 }
 
 function Router() {
   const { user, isLoading } = useAuth();
 
-  // Initialize HelloSkip safely on first render
+  // Initialize HelloSkip safely on first render (hard gate at call site)
   useEffect(() => {
-    initializeHelloSkip();
+    if (import.meta.env.VITE_SKIP_ENABLED === 'true') {
+      initializeHelloSkip();
+    } else {
+      console.log('HelloSkip fully disabled at bootstrap');
+    }
   }, []);
 
   if (isLoading) {
