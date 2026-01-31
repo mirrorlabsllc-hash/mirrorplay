@@ -181,14 +181,24 @@ async function initializeHelloSkip() {
 
 function Router() {
   const { user, isLoading } = useAuth();
+  const [initialized, setInitialized] = useState(false);
 
   // Initialize HelloSkip safely on first render (hard gate at call site)
   useEffect(() => {
+    console.log("BOOT START");
     if (import.meta.env.VITE_SKIP_ENABLED === 'true') {
       initializeHelloSkip();
     } else {
       console.log('HelloSkip fully disabled at bootstrap');
     }
+  }, []);
+
+  // Force boot after 3 seconds as safety net
+  useEffect(() => {
+    setTimeout(() => {
+      console.warn("FORCING BOOT");
+      setInitialized(true);
+    }, 3000);
   }, []);
 
   if (isLoading) {
