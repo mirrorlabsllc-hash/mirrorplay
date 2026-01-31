@@ -199,14 +199,7 @@ function Router() {
     setInitialized(true);
   }, []);
 
-  // Force boot after 3 seconds as safety net
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      console.warn("FORCING BOOT");
-      setInitialized(true);
-    }, 3000);
-    return () => clearTimeout(timeoutId);
-  }, []);
+
 
   // 1. Still booting
   if (isLoading || !initialized) {
