@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@shared/models/auth";
 import { apiRequest } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 
 async function fetchUser(): Promise<User | null> {
   const response = await fetch("/api/auth/user", {
@@ -27,6 +28,7 @@ async function logout(): Promise<void> {
 export function useAuth() {
   const queryClient = useQueryClient();
   const [initialized, setInitialized] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const lastExchangedTokenRef = useRef<string | null>(null);
 
   const exchangeSupabaseSession = useCallback(
@@ -50,58 +52,44 @@ export function useAuth() {
   );
 
   useEffect(() => {
-    if (initialized) return;
     let active = true;
 
-    const initialize = async () => {
-      let currentUser: User | null = null;
-
-      try {
-        currentUser = await fetchUser();
-      } catch {
-        currentUser = null;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setSession(data.session ?? null);
+      setInitialized(true);
+      if (data.session?.access_token) {
+        exchangeSupabaseSession(data.session.access_token);
+      } else {
+        queryClient.setQueryData(["/api/auth/user"], null);
       }
+    });
 
-      if (!currentUser) {
-        try {
-          const { data } = await supabase.auth.getSession();
-          currentUser = await exchangeSupabaseSession(
-            data.session?.access_token
-          );
-        } catch {
-          // Ignore Supabase exchange errors to avoid blocking boot.
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        if (!active) return;
+        setSession(nextSession ?? null);
+        setInitialized(true);
+        if (nextSession?.access_token) {
+          exchangeSupabaseSession(nextSession.access_token);
+        } else {
+          queryClient.setQueryData(["/api/auth/user"], null);
         }
       }
-
-      if (active) {
-        queryClient.setQueryData(["/api/auth/user"], currentUser);
-        setInitialized(true);
-      }
-    };
-
-    initialize();
+    );
 
     return () => {
       active = false;
+      listener.subscription.unsubscribe();
     };
-  }, [initialized, queryClient, exchangeSupabaseSession]);
-
-  useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      exchangeSupabaseSession(session?.access_token);
-    });
-
-    return () => {
-      data.subscription.unsubscribe();
-    };
-  }, [exchangeSupabaseSession]);
+  }, [exchangeSupabaseSession, queryClient]);
 
   const { data: user } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: initialized,
+    enabled: initialized && !!session,
   });
 
   const logoutMutation = useMutation({
@@ -113,8 +101,9 @@ export function useAuth() {
 
   return {
     user,
+    session,
     isLoading: !initialized,
-    isAuthenticated: !!user,
+    isAuthenticated: !!session || !!user,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
   };

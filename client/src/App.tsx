@@ -58,6 +58,7 @@ function AnimatedRoutes() {
       >
         <Switch location={location}>
           {/* Main tab hubs */}
+          <Route path="/app" component={PracticeHub} />
           <Route path="/" component={PracticeHub} />
           <Route path="/journey" component={JourneyHub} />
           <Route path="/profile" component={Profile} />
@@ -182,7 +183,8 @@ async function initializeHelloSkip() {
 }
 
 function Router() {
-  const { user, isLoading } = useAuth();
+  const { session, user, isLoading } = useAuth();
+  const [location, setLocation] = useLocation();
   const [initialized, setInitialized] = useState(false);
   
   // SSR guard - if window doesn't exist, skip initialization
@@ -201,6 +203,11 @@ function Router() {
     setInitialized(true);
   }, []);
 
+  useEffect(() => {
+    if (session && location === "/login") {
+      setLocation("/app");
+    }
+  }, [session, location, setLocation]);
 
 
   // 1. Still booting
@@ -209,10 +216,15 @@ function Router() {
     return <LoadingScreen />;
   }
 
-  console.log("AUTH RESOLVED", { user: !!user, isLoading, initialized });
+  console.log("AUTH RESOLVED", {
+    session: !!session,
+    user: !!user,
+    isLoading,
+    initialized,
+  });
 
   // 2. Booted, NOT logged in
-  if (!user) {
+  if (!session) {
     console.log("GATE 2: Booted, not logged in");
     return <UnauthenticatedApp />;
   }
