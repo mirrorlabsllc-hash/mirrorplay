@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { User } from "@shared/models/auth";
 
@@ -23,11 +24,37 @@ async function logout(): Promise<void> {
 
 export function useAuth() {
   const queryClient = useQueryClient();
-  const { data: user, isLoading } = useQuery<User | null>({
+  const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    if (initialized) return;
+    let active = true;
+
+    queryClient
+      .fetchQuery({
+        queryKey: ["/api/auth/user"],
+        queryFn: fetchUser,
+        retry: false,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+      })
+      .catch(() => {
+        // Swallow errors so auth can still resolve.
+      })
+      .finally(() => {
+        if (active) setInitialized(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [initialized, queryClient]);
+
+  const { data: user } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: initialized,
   });
 
   const logoutMutation = useMutation({
@@ -39,7 +66,7 @@ export function useAuth() {
 
   return {
     user,
-    isLoading,
+    isLoading: !initialized,
     isAuthenticated: !!user,
     logout: logoutMutation.mutate,
     isLoggingOut: logoutMutation.isPending,
