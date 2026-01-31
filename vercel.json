@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/**": {
+      "nodeVersion": "20.19.0"
+    }
+  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/" }
   ]
