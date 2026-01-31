@@ -182,6 +182,11 @@ async function initializeHelloSkip() {
 function Router() {
   const { user, isLoading } = useAuth();
   const [initialized, setInitialized] = useState(false);
+  
+  // SSR guard - if window doesn't exist, skip initialization
+  if (typeof window === "undefined") {
+    return <LoadingScreen />;
+  }
 
   // Initialize HelloSkip safely on first render (hard gate at call site)
   useEffect(() => {
