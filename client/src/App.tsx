@@ -213,7 +213,18 @@ function Router() {
   }
 
   console.log("AUTH RESOLVED", { user: !!user, isLoading, initialized });
-  return user ? <AuthenticatedApp /> : <UnauthenticatedApp />;
+  
+  // TEMPORARY DEBUG: Force show what we're rendering
+  if (!user) {
+    return (
+      <div style={{ color: "white", fontSize: "24px", padding: "40px", textAlign: "center" }}>
+        <p>✅ LOGGED OUT VIEW - UnauthenticatedApp should show below this</p>
+        <UnauthenticatedApp />
+      </div>
+    );
+  }
+  
+  return <AuthenticatedApp />;
 }
 
 export default function App() {
