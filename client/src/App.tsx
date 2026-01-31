@@ -208,22 +208,19 @@ function Router() {
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // 1. Still booting
   if (isLoading || !initialized) {
     return <LoadingScreen />;
   }
 
   console.log("AUTH RESOLVED", { user: !!user, isLoading, initialized });
-  
-  // TEMPORARY DEBUG: Force show what we're rendering
+
+  // 2. Booted, NOT logged in
   if (!user) {
-    return (
-      <div style={{ color: "white", fontSize: "24px", padding: "40px", textAlign: "center" }}>
-        <p>✅ LOGGED OUT VIEW - UnauthenticatedApp should show below this</p>
-        <UnauthenticatedApp />
-      </div>
-    );
+    return <UnauthenticatedApp />;
   }
-  
+
+  // 3. Booted, logged in
   return <AuthenticatedApp />;
 }
 
