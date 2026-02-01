@@ -1,4 +1,4 @@
-import { stripe } from "../_lib/stripe";
+import { stripe } from "../_lib/stripe.js";
 import { storage } from "../../server/storage";
 import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
 

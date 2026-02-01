@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import { stripe } from "../api/_lib/stripe";
+import { stripe } from "../api/_lib/stripe.js";
 
 export type SubscriptionTier = 'free' | 'peace_plus' | 'pro_mind';
 
