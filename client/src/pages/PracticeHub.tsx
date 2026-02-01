@@ -461,7 +461,7 @@ export default function PracticeHub() {
 
   const handleDailyCheckIn = () => {
     if (isAnonymous) {
-      navigate("/api/login");
+      navigate("/login");
       return;
     }
     
@@ -628,7 +628,7 @@ export default function PracticeHub() {
           </div>
 
           <div className="pt-4 space-y-3">
-            <Button onClick={() => navigate("/api/login")} className="w-full gap-2">
+            <Button onClick={() => navigate("/login")} className="w-full gap-2">
               <Sparkles className="w-4 h-4" />
               Create Free Account
             </Button>

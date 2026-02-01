@@ -21,7 +21,7 @@ import { Link } from "wouter";
 import type { UserProgress, Subscription } from "@shared/schema";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const { data: progress } = useQuery<UserProgress>({
     queryKey: ["/api/progress"],
@@ -48,7 +48,7 @@ export default function Profile() {
   const levelProgress = (currentLevelXp / xpToNextLevel) * 100;
 
   const handleLogout = () => {
-    window.location.href = "/api/logout";
+    logout();
   };
 
   const isFreeUser = !subscription?.tier || subscription?.tier === "free";

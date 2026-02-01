@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Mail, ArrowLeft, AlertCircle } from "lucide-react";
 import { SiGoogle, SiApple } from "react-icons/si";
@@ -91,26 +91,21 @@ export default function Login() {
         return;
       }
 
-      const res = await apiRequest("POST", "/api/auth/login", {
+      const { error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
-      const data = await res.json();
 
-      if (data.user) {
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        toast({
-          title: "Welcome back!",
-          description: "Redirecting to your practice hub...",
-        });
-        setLocation("/");
-      } else if (data.message) {
-        toast({
-          title: "Login failed",
-          description: data.message,
-          variant: "destructive",
-        });
+      if (error) {
+        throw error;
       }
+
+      await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Welcome back!",
+        description: "Redirecting to your practice hub...",
+      });
+      setLocation("/");
     } catch (error: any) {
       toast({
         title: "Error",

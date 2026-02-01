@@ -8,14 +8,18 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-async function getAuthHeaders() {
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
   try {
     const { data } = await supabase.auth.getSession();
     const accessToken = data.session?.access_token;
-    return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
   } catch {
-    return {};
+    return headers;
   }
+  return headers;
 }
 
 export async function apiRequest(

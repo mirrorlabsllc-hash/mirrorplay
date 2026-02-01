@@ -6,7 +6,14 @@ import { supabase } from "@/lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 
 async function fetchUser(): Promise<User | null> {
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
+  if (!accessToken) {
+    return null;
+  }
+
   const response = await fetch("/api/auth/user", {
+    headers: { Authorization: `Bearer ${accessToken}` },
     credentials: "include",
   });
 
@@ -24,7 +31,8 @@ async function fetchUser(): Promise<User | null> {
 }
 
 async function logout(): Promise<void> {
-  window.location.href = "/api/logout";
+  await supabase.auth.signOut();
+  window.location.href = "/";
 }
 
 export function useAuth() {
