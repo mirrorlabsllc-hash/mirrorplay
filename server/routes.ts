@@ -8,7 +8,7 @@ import { getScenarioById, scenarios as builtInScenarios, getDuoScenarios, getDuo
 import { getUncachableStripeClient, getStripePublishableKey } from "./stripeClient";
 import { updateStreak, checkAndAwardBadges, checkGiftBadges } from "./badgeService";
 import { canAnalyze, getSubscriptionTier, getDailyLimit, getDailyUsage } from "./subscriptionLimits";
-import { DEFAULT_VOICES, isElevenLabsAvailable, textToSpeech, type TtsSection, createVoiceClone as createVoiceCloneEL, deleteVoiceClone as deleteElevenLabsVoice } from "./elevenLabsClient";
+import { isElevenLabsAvailable, textToSpeech, createVoiceClone as createVoiceCloneEL, deleteVoiceClone as deleteElevenLabsVoice } from "./elevenLabsClient";
 import { insertUserAvatarSettingsSchema, insertAvatarPresetSchema, insertTestimonialSchema, insertUserFeedbackSchema, type InsertPrototypeFeedback } from "@shared/schema";
 
 /**
@@ -1701,124 +1701,6 @@ If they have progress, briefly acknowledge it in an encouraging way.`
       }
       console.error("Error generating greeting:", error);
       res.status(500).json({ message: "Failed to generate greeting" });
-    }
-  });
-
-  // Voice routes
-  app.get("/api/voices", async (_req, res) => {
-    res.json({
-      voices: DEFAULT_VOICES,
-      ttsAvailable: isElevenLabsAvailable(),
-    });
-  });
-
-  app.get("/api/voices/user", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const prefs = await storage.getUserVoicePreferences(userId);
-      const voiceClones = await storage.getUserVoiceClones(userId);
-      
-      res.json({
-        preferences: prefs || { selectedVoiceId: "21m00Tcm4TlvDq8ikWAM", ttsEnabled: true },
-        voiceClones,
-        ttsAvailable: isElevenLabsAvailable(),
-      });
-    } catch (error) {
-      console.error("Error fetching user voice settings:", error);
-      res.status(500).json({ message: "Failed to fetch voice settings" });
-    }
-  });
-
-  // Standalone TTS endpoint for generating speech from text
-  app.post("/api/tts", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const { text, voiceId, section, difficulty } = req.body as {
-        text: string;
-        voiceId?: string;
-        section?: TtsSection | string;
-        difficulty?: "beginner" | "intermediate" | "advanced" | string;
-      };
-
-      if (!text || typeof text !== "string") {
-        return res.status(400).json({ message: "Text is required" });
-      }
-
-      if (!isElevenLabsAvailable()) {
-        return res.status(503).json({ message: "TTS not available" });
-      }
-
-      const prefs = await storage.getUserVoicePreferences(userId);
-      const selectedVoiceId = voiceId || prefs?.selectedVoiceId || "21m00Tcm4TlvDq8ikWAM";
-
-      const allowedSections: TtsSection[] = ["general", "scenario", "analysis-what", "analysis-how", "analysis-reframe"];
-      const sectionHint: TtsSection = allowedSections.includes(section as TtsSection)
-        ? (section as TtsSection)
-        : "general";
-
-      const difficultyHint = difficulty === "beginner" || difficulty === "advanced" ? difficulty : "intermediate";
-
-      const audioBuffer = await textToSpeech(text.slice(0, 500), selectedVoiceId, {
-        section: sectionHint,
-        difficulty: difficultyHint,
-      });
-      
-      if (!audioBuffer) {
-        return res.status(500).json({ message: "Failed to generate speech" });
-      }
-
-      const audioBase64 = audioBuffer.toString("base64");
-      res.json({ audio: audioBase64 });
-    } catch (error) {
-      console.error("Error generating TTS:", error);
-      res.status(500).json({ message: "Failed to generate speech" });
-    }
-  });
-
-  app.post("/api/voices/select", isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const { voiceId, ttsEnabled } = req.body;
-
-      if (!voiceId) {
-        return res.status(400).json({ message: "Voice ID is required" });
-      }
-
-      const prefs = await storage.upsertUserVoicePreferences(userId, {
-        selectedVoiceId: voiceId,
-        ttsEnabled: ttsEnabled !== false,
-      });
-
-      res.json({ success: true, preferences: prefs });
-    } catch (error) {
-      console.error("Error saving voice selection:", error);
-      res.status(500).json({ message: "Failed to save voice selection" });
-    }
-  });
-
-  app.get("/api/voices/sample/:voiceId", async (req, res) => {
-    try {
-      const { voiceId } = req.params;
-      
-      if (!isElevenLabsAvailable()) {
-        return res.status(503).json({ message: "TTS not available" });
-      }
-
-      const audioBuffer = await textToSpeech(
-        "Hello, I'm your AI companion. How can I help you today?",
-        voiceId,
-        { section: "general" }
-      );
-
-      if (!audioBuffer) {
-        return res.status(500).json({ message: "Failed to generate sample" });
-      }
-
-      res.set("Content-Type", "audio/mpeg");
-      res.send(audioBuffer);
-    } catch (error) {
-      console.error("Error generating voice sample:", error);
-      res.status(500).json({ message: "Failed to generate sample" });
     }
   });
 

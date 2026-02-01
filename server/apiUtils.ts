@@ -10,6 +10,8 @@ export type ResLike = {
   status: (code: number) => ResLike;
   json: (payload: unknown) => void;
   setHeader: (name: string, value: string) => void;
+  send?: (body: unknown) => void;
+  end?: (body?: unknown) => void;
 };
 
 export function getHeaderValue(
