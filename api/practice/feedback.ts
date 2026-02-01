@@ -1,8 +1,8 @@
-import { storage } from "../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
-import { requireOpenAI, handleOpenAIError } from "../../server/services/openaiClient";
-import { canAnalyze } from "../../server/subscriptionLimits";
-import { getJsonBody, type ReqLike, type ResLike } from "../../server/apiUtils";
+import { storage } from "../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
+import { requireOpenAI, handleOpenAIError } from "../../lib/services/openaiClient.js";
+import { canAnalyze } from "../../lib/subscriptionLimits.js";
+import { getJsonBody, type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 export default async function handler(req: ReqLike, res: ResLike) {
   if (req.method !== "POST") {
@@ -102,3 +102,4 @@ Guidelines:
     res.status(500).json({ message: "Failed to generate feedback" });
   }
 }
+

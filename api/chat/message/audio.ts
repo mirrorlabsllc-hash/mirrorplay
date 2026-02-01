@@ -1,8 +1,8 @@
-import { storage } from "../../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../../server/supabaseServer";
-import { requireOpenAI, handleOpenAIError } from "../../../server/services/openaiClient";
-import { isElevenLabsAvailable, textToSpeech } from "../../../server/elevenLabsClient";
-import { getJsonBody, type ReqLike, type ResLike } from "../../../server/apiUtils";
+import { storage } from "../../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../../lib/supabaseServer.js";
+import { requireOpenAI, handleOpenAIError } from "../../../lib/services/openaiClient.js";
+import { isElevenLabsAvailable, textToSpeech } from "../../../lib/elevenLabsClient.js";
+import { getJsonBody, type ReqLike, type ResLike } from "../../../lib/apiUtils.js";
 
 const SYSTEM_PROMPT = `You are Mirror AI, a warm and supportive emotional intelligence coach. Your role is to:
 1. Listen with empathy and validate feelings
@@ -90,3 +90,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to send message" });
   }
 }
+

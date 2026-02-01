@@ -1,6 +1,6 @@
-import { storage } from "../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
-import { getJsonBody, type ReqLike, type ResLike } from "../../server/apiUtils";
+import { storage } from "../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
+import { getJsonBody, type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 const MOOD_TO_WEATHER: Record<string, string> = {
   calm: "mist",
@@ -49,3 +49,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to create mood check-in" });
   }
 }
+

@@ -1,6 +1,6 @@
-import { storage } from "../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
-import { type ReqLike, type ResLike } from "../../server/apiUtils";
+import { storage } from "../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
+import { type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 export default async function handler(req: ReqLike, res: ResLike) {
   if (req.method !== "POST") {
@@ -27,3 +27,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to reset conversation" });
   }
 }
+

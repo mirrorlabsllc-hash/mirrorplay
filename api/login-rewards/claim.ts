@@ -1,7 +1,7 @@
-import { storage } from "../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
-import { checkAndAwardBadges } from "../../server/badgeService";
-import { type ReqLike, type ResLike } from "../../server/apiUtils";
+import { storage } from "../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
+import { checkAndAwardBadges } from "../../lib/badgeService.js";
+import { type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 function getStreakMultiplier(streakDays: number): number {
   if (streakDays >= 30) return 5;
@@ -133,3 +133,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     return res.status(500).json({ message: "Failed to claim login reward" });
   }
 }
+

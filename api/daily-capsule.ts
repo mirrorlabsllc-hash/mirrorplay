@@ -1,7 +1,7 @@
-import { storage } from "../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../server/supabaseServer";
+import { storage } from "../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../lib/supabaseServer.js";
 import { PRACTICE_HANDOFFS, DEFAULT_HANDOFF_LINE } from "@shared/promptBank";
-import { type ReqLike, type ResLike } from "../server/apiUtils";
+import { type ReqLike, type ResLike } from "../lib/apiUtils.js";
 
 const CATEGORIES = ["workplace", "relationships", "family", "social", "self-advocacy"];
 
@@ -44,3 +44,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to fetch daily capsule" });
   }
 }
+

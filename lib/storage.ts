@@ -1,5 +1,5 @@
 import { eq, desc, and, sql, or, gte, lte, inArray } from "drizzle-orm";
-import { db } from "./db";
+import { db } from "./db.js";
 import {
   users,
   userProgress,

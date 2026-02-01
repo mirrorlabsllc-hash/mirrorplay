@@ -1,9 +1,9 @@
-import { storage } from "../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
-import { requireOpenAI, handleOpenAIError } from "../../server/services/openaiClient";
-import { canAnalyze } from "../../server/subscriptionLimits";
-import { updateStreak, checkAndAwardBadges } from "../../server/badgeService";
-import { getJsonBody, type ReqLike, type ResLike } from "../../server/apiUtils";
+import { storage } from "../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
+import { requireOpenAI, handleOpenAIError } from "../../lib/services/openaiClient.js";
+import { canAnalyze } from "../../lib/subscriptionLimits.js";
+import { updateStreak, checkAndAwardBadges } from "../../lib/badgeService.js";
+import { getJsonBody, type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 function getStreakMultiplier(streakDays: number): number {
   if (streakDays >= 30) return 5;
@@ -317,3 +317,4 @@ Respond in JSON format:
     res.status(500).json({ message: "Failed to analyze voice response" });
   }
 }
+

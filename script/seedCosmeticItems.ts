@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db } from "../lib/db.js";
 import { cosmeticItems } from "@shared/schema";
 
 const COSMETIC_ITEMS = [

@@ -1,6 +1,6 @@
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
-import { getDailyLimit, getDailyUsage, getSubscriptionTier } from "../../server/subscriptionLimits";
-import { type ReqLike, type ResLike } from "../../server/apiUtils";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
+import { getDailyLimit, getDailyUsage, getSubscriptionTier } from "../../lib/subscriptionLimits.js";
+import { type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 export default async function handler(req: ReqLike, res: ResLike) {
   if (req.method !== "GET") {
@@ -34,3 +34,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to fetch subscription usage" });
   }
 }
+

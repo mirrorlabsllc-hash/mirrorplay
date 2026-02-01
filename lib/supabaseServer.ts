@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 
 type RequestLike = {
   headers?: Record<string, string | string[] | undefined>;
@@ -14,12 +14,24 @@ export class SupabaseAuthError extends Error {
   }
 }
 
-const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseAdmin =
-  supabaseUrl && supabaseServiceRoleKey
-    ? createClient(supabaseUrl, supabaseServiceRoleKey)
-    : null;
+if (!process.env.SUPABASE_URL) {
+  throw new Error("Missing SUPABASE_URL");
+}
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
+}
+
+export const supabaseServer = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  }
+);
 
 function getHeaderValue(
   headers: Record<string, string | string[] | undefined> | undefined,
@@ -39,16 +51,12 @@ function getBearerToken(req: RequestLike): string | null {
 }
 
 export async function requireSupabaseUser(req: RequestLike) {
-  if (!supabaseAdmin) {
-    throw new SupabaseAuthError(500, "Supabase admin not configured");
-  }
-
   const accessToken = getBearerToken(req);
   if (!accessToken) {
     throw new SupabaseAuthError(401, "Missing authorization token");
   }
 
-  const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
+  const { data, error } = await supabaseServer.auth.getUser(accessToken);
   if (error || !data?.user) {
     throw new SupabaseAuthError(401, "Invalid Supabase session");
   }

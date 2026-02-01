@@ -1,6 +1,6 @@
-import { stripe } from "../_lib/stripe.js";
-import { storage } from "../../server/storage";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
+import { stripe } from "../../lib/stripe.js";
+import { storage } from "../../lib/storage.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
 
 type ReqLike = {
   method?: string;
@@ -113,3 +113,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     });
   }
 }
+

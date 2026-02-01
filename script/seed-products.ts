@@ -1,4 +1,4 @@
-import { stripe } from '../api/_lib/stripe.js';
+import { stripe } from '../lib/stripe.js';
 
 async function seedProducts() {
   console.log('Checking existing products...');

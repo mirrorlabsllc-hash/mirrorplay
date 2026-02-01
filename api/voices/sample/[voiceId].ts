@@ -1,5 +1,5 @@
-import { isElevenLabsAvailable, textToSpeech } from "../../../server/elevenLabsClient";
-import { getLastPathSegment, getQueryParam, type ReqLike, type ResLike } from "../../../server/apiUtils";
+import { isElevenLabsAvailable, textToSpeech } from "../../../lib/elevenLabsClient.js";
+import { getLastPathSegment, getQueryParam, type ReqLike, type ResLike } from "../../../lib/apiUtils.js";
 
 export default async function handler(req: ReqLike, res: ResLike) {
   if (req.method !== "GET") {

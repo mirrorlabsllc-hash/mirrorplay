@@ -1,5 +1,5 @@
-import { stripe } from "../_lib/stripe.js";
-import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
+import { stripe } from "../../lib/stripe.js";
+import { requireSupabaseUser, SupabaseAuthError } from "../../lib/supabaseServer.js";
 
 type ReqLike = {
   method?: string;
@@ -56,3 +56,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to fetch subscription" });
   }
 }
+

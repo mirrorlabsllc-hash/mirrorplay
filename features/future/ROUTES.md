@@ -1,6 +1,6 @@
 # Express Route Migration Map
 
-Generated from server/routes.ts. Total routes: 182.
+Generated from the legacy routes inventory. Total routes: 182.
 
 ## Active (migrated to serverless)
 

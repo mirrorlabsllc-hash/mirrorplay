@@ -1,5 +1,5 @@
-import { DEFAULT_VOICES, isElevenLabsAvailable } from "../../server/elevenLabsClient";
-import { type ReqLike, type ResLike } from "../../server/apiUtils";
+import { DEFAULT_VOICES, isElevenLabsAvailable } from "../../lib/elevenLabsClient.js";
+import { type ReqLike, type ResLike } from "../../lib/apiUtils.js";
 
 export default async function handler(req: ReqLike, res: ResLike) {
   if (req.method !== "GET") {
@@ -12,3 +12,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     ttsAvailable: isElevenLabsAvailable(),
   });
 }
+

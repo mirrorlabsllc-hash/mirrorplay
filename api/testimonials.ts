@@ -1,6 +1,6 @@
-import { storage } from "../server/storage";
+import { storage } from "../lib/storage.js";
 import { insertTestimonialSchema } from "@shared/schema";
-import { requireSupabaseUser, SupabaseAuthError } from "../server/supabaseServer";
+import { requireSupabaseUser, SupabaseAuthError } from "../lib/supabaseServer.js";
 
 type ReqLike = {
   method?: string;
@@ -75,3 +75,4 @@ export default async function handler(req: ReqLike, res: ResLike) {
     res.status(500).json({ message: "Failed to create testimonial" });
   }
 }
+
