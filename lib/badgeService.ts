@@ -1,5 +1,5 @@
 import { storage } from "./storage.js";
-import type { Badge, UserProgress, PracticeSession } from "@shared/schema";
+import type { Badge, UserProgress, PracticeSession } from "../shared/schema.js";
 
 export interface BadgeCheckResult {
   newBadges: Badge[];

@@ -6,6 +6,7 @@
     "node": ">=20.19.0 <21"
   },
   "license": "MIT",
+
   "scripts": {
     "dev": "vite",
     "dev:vercel": "vercel dev",
@@ -13,8 +14,25 @@
     "build:full": "tsx script/build.ts",
     "start": "vite preview",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+
+    "audit:migration": "npm run audit:server-imports && npm run audit:express && npm run audit:routes && npm run audit:stripe && npm run audit:supabase && npm run audit:storage && npm run audit:build",
+
+    "audit:server-imports": "grep -R \"server/\" . --exclude-dir=node_modules --exclude-dir=.git && exit 1 || echo \"✔ No server/ imports found\"",
+
+    "audit:express": "npm ls express > /dev/null 2>&1 && exit 1 || echo \"✔ Express not installed\"",
+
+    "audit:routes": "grep -R \"app\\.get\\|app\\.post\\|app\\.use\\|router\\.\" . --exclude-dir=node_modules --exclude-dir=.git && exit 1 || echo \"✔ No Express routes found\"",
+
+    "audit:stripe": "grep -R \"new Stripe(\" . | grep -v \"lib/stripe\" && exit 1 || echo \"✔ Stripe centralized in lib/stripe.ts\"",
+
+    "audit:supabase": "grep -R \"SUPABASE_SERVICE_ROLE\" . | grep -v \"lib/supabaseServer\" && exit 1 || echo \"✔ Supabase server client centralized\"",
+
+    "audit:storage": "grep -R \"server/storage\" . && exit 1 || echo \"✔ Storage imports clean\"",
+
+    "audit:build": "npm run build"
   },
+
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
@@ -91,6 +109,7 @@
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   },
+
   "devDependencies": {
     "@replit/vite-plugin-cartographer": "^0.4.4",
     "@replit/vite-plugin-dev-banner": "^0.1.1",
@@ -111,6 +130,7 @@
     "typescript": "5.6.3",
     "vite": "^7.3.0"
   },
+
   "overrides": {
     "drizzle-kit": {
       "@esbuild-kit/esm-loader": "npm:tsx@^4.20.4"

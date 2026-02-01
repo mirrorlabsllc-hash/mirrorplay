@@ -171,7 +171,7 @@ import {
   type InsertPrototypeFeedback,
   type UserFeedback,
   type InsertUserFeedback,
-} from "@shared/schema";
+} from "../shared/schema.js";
 
 export interface IStorage {
   // Users
