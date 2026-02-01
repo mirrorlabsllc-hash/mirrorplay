@@ -19,8 +19,13 @@ import {
 } from "lucide-react";
 import type { User } from "@shared/schema";
 
+type SearchUser = User & {
+  username?: string | null;
+  level?: number | null;
+};
+
 interface SearchResult {
-  users: User[];
+  users: SearchUser[];
 }
 
 interface FriendData {
@@ -103,7 +108,7 @@ export default function UserSearch() {
     return friend?.status;
   };
 
-  const users = searchMutation.data?.users || [];
+  const users = (searchMutation.data?.users || []) as SearchResult["users"];
 
   return (
     <div className="min-h-screen pb-24 pt-4 px-4 space-y-6">
@@ -169,10 +174,12 @@ export default function UserSearch() {
           </motion.div>
         )}
 
-        {users.map((user, index) => {
+        {users.map((user: SearchUser, index: number) => {
           const friendStatus = getFriendStatus(user.id);
           const isAlreadyFriend = friendStatus === "accepted";
           const isPending = friendStatus === "pending";
+          const displayName = user.username || user.firstName || "User";
+          const displayLevel = user.level ?? 1;
 
           return (
             <motion.div
@@ -187,7 +194,7 @@ export default function UserSearch() {
                     <Avatar className="w-12 h-12 cursor-pointer">
                       <AvatarImage src={user.profileImageUrl || undefined} />
                       <AvatarFallback>
-                        {(user.username || user.firstName || "U").charAt(0).toUpperCase()}
+                        {displayName.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </Link>
@@ -195,11 +202,11 @@ export default function UserSearch() {
                   <div className="flex-1 min-w-0">
                     <Link to={`/users/${user.id}`}>
                       <h3 className="font-semibold truncate hover:text-primary cursor-pointer">
-                        {user.username || user.firstName || "User"}
+                        {displayName}
                       </h3>
                     </Link>
                     <p className="text-sm text-muted-foreground truncate">
-                      Level {user.level || 1}
+                      Level {displayLevel}
                     </p>
                   </div>
 

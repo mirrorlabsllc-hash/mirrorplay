@@ -121,7 +121,7 @@ export interface TtsOptions {
 }
 
 function sanitizeForSsml(text: string): string {
-  const withoutEmoji = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "");
+  const withoutEmoji = text.replace(/[^\x00-\x7F]/g, "");
   const withoutExclaim = withoutEmoji.replace(/[!]+/g, ".");
   const withoutQuestions = withoutExclaim.replace(/[?]+/g, ".");
   const collapsed = withoutQuestions.replace(/\s+/g, " ").trim();

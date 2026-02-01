@@ -24,7 +24,7 @@ import { format, subDays, isSameDay, parseISO } from "date-fns";
 import { useState, useRef, useMemo } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { ShareableAchievementCard } from "@/components/ShareableAchievementCard";
+import { ShareableAchievementCard } from "@/FutureFeatures/components/ShareableAchievementCard";
 import { 
   LineChart, 
   Line, 

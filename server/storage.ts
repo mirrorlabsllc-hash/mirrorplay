@@ -168,6 +168,7 @@ import {
   type InsertTestimonial,
   prototypeFeedback,
   type PrototypeFeedback,
+  type InsertPrototypeFeedback,
   type UserFeedback,
   type InsertUserFeedback,
 } from "@shared/schema";

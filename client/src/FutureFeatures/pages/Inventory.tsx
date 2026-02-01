@@ -31,7 +31,7 @@ import {
   BookOpen
 } from "lucide-react";
 import { Link } from "wouter";
-import { LoreModal } from "@/components/LoreModal";
+import { LoreModal } from "@/FutureFeatures/components/LoreModal";
 import type { CosmeticItem } from "@shared/schema";
 
 const categoryIcons: Record<string, any> = {

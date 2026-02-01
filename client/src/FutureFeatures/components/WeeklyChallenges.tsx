@@ -72,7 +72,8 @@ function ChallengeItem({
   
   const claimMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/weekly-challenges/${challenge.id}/claim`, { method: "POST" });
+      const response = await apiRequest("POST", `/api/weekly-challenges/${challenge.id}/claim`);
+      return response.json();
     },
     onSuccess: (data: any) => {
       confetti({
@@ -201,7 +202,8 @@ export function WeeklyChallenges() {
 
   const seedMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("/api/weekly-challenges/seed", { method: "POST" });
+      const response = await apiRequest("POST", "/api/weekly-challenges/seed");
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/weekly-challenges"] });

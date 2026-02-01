@@ -47,7 +47,8 @@ function FriendsTab() {
 
   const sendRequestMutation = useMutation({
     mutationFn: async (email: string) => {
-      return apiRequest("/api/friends/request", { method: "POST", body: JSON.stringify({ email }) });
+      const response = await apiRequest("POST", "/api/friends/request", { email });
+      return response.json();
     },
     onSuccess: () => {
       toast({ title: "Friend request sent!" });
@@ -61,7 +62,8 @@ function FriendsTab() {
 
   const acceptMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/friends/${id}/accept`, { method: "POST" });
+      const response = await apiRequest("POST", `/api/friends/${id}/accept`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
@@ -72,7 +74,8 @@ function FriendsTab() {
 
   const rejectMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/friends/${id}/reject`, { method: "POST" });
+      const response = await apiRequest("POST", `/api/friends/${id}/reject`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/friends/pending"] });
@@ -82,7 +85,8 @@ function FriendsTab() {
 
   const removeMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/friends/${id}`, { method: "DELETE" });
+      const response = await apiRequest("DELETE", `/api/friends/${id}`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/friends"] });
@@ -257,10 +261,12 @@ function CirclesTab() {
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("/api/circles", {
-        method: "POST",
-        body: JSON.stringify({ name: circleName, description: circleDescription, isPublic }),
+      const response = await apiRequest("POST", "/api/circles", {
+        name: circleName,
+        description: circleDescription,
+        isPublic,
       });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/circles"] });
@@ -277,7 +283,8 @@ function CirclesTab() {
 
   const joinMutation = useMutation({
     mutationFn: async (circleId: string) => {
-      return apiRequest(`/api/circles/${circleId}/join`, { method: "POST" });
+      const response = await apiRequest("POST", `/api/circles/${circleId}/join`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/circles"] });
@@ -290,7 +297,8 @@ function CirclesTab() {
 
   const leaveMutation = useMutation({
     mutationFn: async (circleId: string) => {
-      return apiRequest(`/api/circles/${circleId}/leave`, { method: "DELETE" });
+      const response = await apiRequest("DELETE", `/api/circles/${circleId}/leave`);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/circles"] });

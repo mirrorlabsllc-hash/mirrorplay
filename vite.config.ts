@@ -2,10 +2,10 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
+const apiProxy = process.env.VITE_API_PROXY;
+
 export default defineConfig({
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -23,11 +23,15 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    proxy: {
-      "/api": {
-        target: "http://localhost:5000",
-        changeOrigin: true,
-      },
-    },
+    ...(apiProxy
+      ? {
+          proxy: {
+            "/api": {
+              target: apiProxy,
+              changeOrigin: true,
+            },
+          },
+        }
+      : {}),
   },
 });

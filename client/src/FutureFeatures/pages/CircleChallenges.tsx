@@ -450,11 +450,11 @@ export default function CircleChallenges() {
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">Your Progress</span>
                           <span className="font-medium">
-                            {userProgress.progress} / {challenge.goal}
+                            {userProgress.progress ?? 0} / {challenge.goal}
                           </span>
                         </div>
                         <Progress
-                          value={Math.min((userProgress.progress / challenge.goal) * 100, 100)}
+                          value={Math.min(((userProgress.progress ?? 0) / challenge.goal) * 100, 100)}
                           className="h-2"
                         />
                       </div>

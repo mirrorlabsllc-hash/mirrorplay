@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { GlassCard } from "@/components/GlassCard";
 import { UserAvatar } from "@/components/UserAvatar";
-import { CoachingOverlay } from "@/components/CoachingOverlay";
+import { CoachingOverlay } from "@/FutureFeatures/components/CoachingOverlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

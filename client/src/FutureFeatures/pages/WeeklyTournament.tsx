@@ -134,13 +134,13 @@ function LeaderboardItem({
       <Avatar className="w-10 h-10 border-2 border-muted">
         <AvatarImage src={entry.user.profileImageUrl || undefined} />
         <AvatarFallback className="bg-primary/20">
-          {(entry.user.username || entry.user.firstName || "U").charAt(0).toUpperCase()}
+          {(entry.user.firstName || entry.user.email || "U").charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
         <p className="font-medium truncate">
-          {entry.user.username || entry.user.firstName || "Anonymous"}
+          {entry.user.firstName || entry.user.email || "Anonymous"}
           {isCurrentUser && <span className="text-xs text-primary ml-2">(You)</span>}
         </p>
         <p className="text-xs text-muted-foreground">

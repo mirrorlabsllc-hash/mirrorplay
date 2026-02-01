@@ -7,11 +7,11 @@ import { GlassCard } from "@/components/GlassCard";
 import { StreakCounter } from "@/components/StreakCounter";
 import { StreakMultiplier } from "@/components/StreakMultiplier";
 import { ProgressRing } from "@/components/ProgressRing";
-import { DailyWheel } from "@/components/DailyWheel";
-import { LoginRewardsCalendar } from "@/components/LoginRewardsCalendar";
+import { DailyWheel } from "@/FutureFeatures/components/DailyWheel";
+import { LoginRewardsCalendar } from "@/FutureFeatures/components/LoginRewardsCalendar";
 import { MoodCheckIn } from "@/components/MoodCheckIn";
 import { QuickPractice } from "@/components/QuickPractice";
-import { WeeklyChallenges } from "@/components/WeeklyChallenges";
+import { WeeklyChallenges } from "@/FutureFeatures/components/WeeklyChallenges";
 import { EventBanner } from "@/components/EventBanner";
 import { Button } from "@/components/ui/button";
 import { 
