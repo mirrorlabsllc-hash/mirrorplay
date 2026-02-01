@@ -1,5 +1,5 @@
 import { db } from "../lib/db.js";
-import { badges } from "@shared/schema";
+import { badges } from "../shared/schema.js";
 
 const badgeDefinitions = [
   {

@@ -1,5 +1,5 @@
 import { db } from "../lib/db.js";
-import { cosmeticItems } from "@shared/schema";
+import { cosmeticItems } from "../shared/schema.js";
 
 const COSMETIC_ITEMS = [
   // === BACKGROUNDS ===
