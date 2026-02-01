@@ -1,4 +1,4 @@
-import { stripe } from "../../lib/stripe";
+import { stripe } from "../_lib/stripe";
 import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
 
 type ReqLike = {

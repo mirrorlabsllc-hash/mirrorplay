@@ -1,4 +1,4 @@
-import { stripe } from "../lib/stripe";
+import { stripe } from "./_lib/stripe";
 
 type ReqLike = {
   method?: string;

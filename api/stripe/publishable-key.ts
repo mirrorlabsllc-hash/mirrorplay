@@ -1,4 +1,4 @@
-import { getStripePublishableKey } from "../../lib/stripe";
+import { getStripePublishableKey } from "../_lib/stripe";
 
 type ReqLike = {
   method?: string;
