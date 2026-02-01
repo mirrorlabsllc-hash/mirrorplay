@@ -1,5 +1,5 @@
 import { storage } from "../lib/storage.js";
-import { insertUserFeedbackSchema, type InsertPrototypeFeedback } from "@shared/schema";
+import { insertUserFeedbackSchema, type InsertPrototypeFeedback } from "../shared/schema.js";
 import { requireSupabaseUser, SupabaseAuthError } from "../lib/supabaseServer.js";
 
 type ReqLike = {

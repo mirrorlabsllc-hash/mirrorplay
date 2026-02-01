@@ -1,5 +1,5 @@
 import { storage } from "../lib/storage.js";
-import { insertTestimonialSchema } from "@shared/schema";
+import { insertTestimonialSchema } from "../shared/schema.js";
 import { requireSupabaseUser, SupabaseAuthError } from "../lib/supabaseServer.js";
 
 type ReqLike = {

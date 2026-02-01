@@ -1,6 +1,6 @@
 import { storage } from "../lib/storage.js";
 import { requireSupabaseUser, SupabaseAuthError } from "../lib/supabaseServer.js";
-import { PRACTICE_HANDOFFS, DEFAULT_HANDOFF_LINE } from "@shared/promptBank";
+import { PRACTICE_HANDOFFS, DEFAULT_HANDOFF_LINE } from "../shared/promptBank.js";
 import { type ReqLike, type ResLike } from "../lib/apiUtils.js";
 
 const CATEGORIES = ["workplace", "relationships", "family", "social", "self-advocacy"];
