@@ -1,5 +1,5 @@
 import { storage } from "./storage";
-import { getUncachableStripeClient } from "./stripeClient";
+import { stripe } from "../lib/stripe";
 
 export type SubscriptionTier = 'free' | 'peace_plus' | 'pro_mind';
 
@@ -28,7 +28,6 @@ async function getStripeTierFromApi(customerId: string): Promise<SubscriptionTie
     return "free";
   }
 
-  const stripe = await getUncachableStripeClient();
   const subscriptions = await stripe.subscriptions.list({
     customer: customerId,
     status: "all",

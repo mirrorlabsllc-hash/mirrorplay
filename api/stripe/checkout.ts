@@ -1,4 +1,4 @@
-import { getUncachableStripeClient } from "../../server/stripeClient";
+import { stripe } from "../../lib/stripe";
 import { storage } from "../../server/storage";
 import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
 
@@ -57,7 +57,6 @@ export default async function handler(req: ReqLike, res: ResLike) {
     }
 
     const user = await requireSupabaseUser(req);
-    const stripe = await getUncachableStripeClient();
 
     let customerId = user.stripeCustomerId;
     if (!customerId) {

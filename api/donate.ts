@@ -1,4 +1,4 @@
-import { getUncachableStripeClient } from "../server/stripeClient";
+import { stripe } from "../lib/stripe";
 
 type ReqLike = {
   method?: string;
@@ -57,16 +57,6 @@ export default async function handler(req: ReqLike, res: ResLike) {
     }
 
     const amountInCents = Math.round(amount * 100);
-
-    let stripe;
-    try {
-      stripe = await getUncachableStripeClient();
-    } catch (stripeError: any) {
-      console.error("Stripe not configured:", stripeError?.message || stripeError);
-      return res.status(503).json({
-        message: "Donations are temporarily unavailable. Please try again later.",
-      });
-    }
 
     const baseUrl = getBaseUrl(req);
 

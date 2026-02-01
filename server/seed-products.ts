@@ -1,8 +1,6 @@
-import { getUncachableStripeClient } from './stripeClient';
+import { stripe } from '../lib/stripe';
 
 async function seedProducts() {
-  const stripe = await getUncachableStripeClient();
-
   console.log('Checking existing products...');
 
   const existingProducts = await stripe.products.search({ query: "active:'true'" });

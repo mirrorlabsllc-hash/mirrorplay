@@ -1,4 +1,4 @@
-import { getUncachableStripeClient } from "../../server/stripeClient";
+import { stripe } from "../../lib/stripe";
 
 type ReqLike = {
   method?: string;
@@ -17,8 +17,6 @@ export default async function handler(req: ReqLike, res: ResLike) {
   }
 
   try {
-    const stripe = await getUncachableStripeClient();
-
     const [productsResponse, pricesResponse] = await Promise.all([
       stripe.products.list({ active: true, limit: 100 }),
       stripe.prices.list({ active: true, limit: 100 }),

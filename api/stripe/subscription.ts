@@ -1,4 +1,4 @@
-import { getUncachableStripeClient } from "../../server/stripeClient";
+import { stripe } from "../../lib/stripe";
 import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
 
 type ReqLike = {
@@ -25,7 +25,6 @@ export default async function handler(req: ReqLike, res: ResLike) {
       return res.status(200).json({ subscription: null, tier: "free" });
     }
 
-    const stripe = await getUncachableStripeClient();
     const subscriptions = await stripe.subscriptions.list({
       customer: user.stripeCustomerId,
       status: "all",

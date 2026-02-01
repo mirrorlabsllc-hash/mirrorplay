@@ -1,4 +1,4 @@
-import { getUncachableStripeClient } from "../../server/stripeClient";
+import { stripe } from "../../lib/stripe";
 import { requireSupabaseUser, SupabaseAuthError } from "../../server/supabaseServer";
 
 type ReqLike = {
@@ -40,7 +40,6 @@ export default async function handler(req: ReqLike, res: ResLike) {
       return res.status(400).json({ message: "No subscription found" });
     }
 
-    const stripe = await getUncachableStripeClient();
     const baseUrl = getBaseUrl(req);
 
     const session = await stripe.billingPortal.sessions.create({
